@@ -98,8 +98,17 @@ export default function FruitSlice(){
       }
 
       // HUD
-      ctx.fillStyle='rgba(255,255,255,.92)'; (ctx as any).roundRect?.(10,10,200,38,16); if(!('roundRect' in ctx)) ctx.fillRect(10,10,200,38); ctx.fill()
-      ctx.fillStyle='#111'; ctx.font='bold 16px system-ui'; ctx.fillText(`得分 ${score}`,22,34); ctx.fillText(`❤ ${lives}`,110,34)
+      ctx.fillStyle = 'rgba(255,255,255,.92)'
+      if ((ctx as any).roundRect) {
+        (ctx as any).roundRect(10, 10, 200, 38, 16)
+      } else {
+        ctx.fillRect(10, 10, 200, 38)
+      }
+      ctx.fill()
+      ctx.fillStyle = '#111'
+      ctx.font = 'bold 16px system-ui'
+      ctx.fillText(`得分 ${score}`, 22, 34)
+      ctx.fillText(`❤ ${lives}`, 110, 34)
       if(lives<=0){ ctx.fillStyle='rgba(15,23,42,.6)'; ctx.fillRect(0,0,rect.width,H); ctx.fillStyle='#fff'; ctx.font='bold 28px system-ui'; ctx.fillText('游戏结束', rect.width/2-70, H/2) }
 
       rafRef.current = requestAnimationFrame(draw)
