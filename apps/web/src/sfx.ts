@@ -5,6 +5,8 @@ function ensureCtx() {
     const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
     ctx = new Ctx();
   }
+  // ensure the audio context is running so sounds play immediately
+  if (ctx.state === 'suspended') ctx.resume();
   return ctx!;
 }
 export function click() {

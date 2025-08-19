@@ -10,10 +10,15 @@ export default function FruitSlice(){
   const canvasRef = useRef<HTMLCanvasElement|null>(null)
   const [score, setScore] = useState(0)
   const [lives, setLives] = useState(3)
+  const scoreRef = useRef(score)
+  const livesRef = useRef(lives)
   const [holding, setHolding] = useState(false)
   const fruitsRef = useRef<Fruit[]>([])
   const trail = useRef<{x:number,y:number,t:number}[]>([])
   const rafRef = useRef(0)
+
+  useEffect(() => { scoreRef.current = score }, [score])
+  useEffect(() => { livesRef.current = lives }, [lives])
 
   useEffect(()=>{
     const cvs = canvasRef.current!, ctx = cvs.getContext('2d')!
@@ -61,7 +66,10 @@ export default function FruitSlice(){
       for(let i=fruitsRef.current.length-1;i>=0;i--){
         const f = fruitsRef.current[i]
         f.x += f.vx*dt; f.y += f.vy*dt; f.vy += 980*dt
-        if(f.y>H+80){ fruitsRef.current.splice(i,1); setLives(v=>Math.max(0,v-1)) }
+        if(f.y>H+80){
+          fruitsRef.current.splice(i,1);
+          setLives(v=>{ const nv=Math.max(0,v-1); livesRef.current=nv; return nv })
+        }
       }
       // draw fruits
       for(const f of fruitsRef.current){ ctx.save(); ctx.font=`${f.r*1.6}px system-ui`; ctx.fillText(f.emoji, f.x - f.r*0.8, f.y + f.r*0.6); ctx.restore() }
@@ -82,7 +90,10 @@ export default function FruitSlice(){
           const a=pts[pts.length-2], b=pts[pts.length-1]
           for(const f of fruitsRef.current){
             if(!f.sliced && lineCircleHit(a.x,a.y,b.x,b.y,f.x,f.y,f.r)){
-              f.sliced=true; splash(f.x,f.y,f.emoji); pop(); setScore(s=>s+1)
+              f.sliced=true;
+              splash(f.x,f.y,f.emoji);
+              pop();
+              setScore(s=>{ const ns=s+1; scoreRef.current=ns; return ns })
             }
           }
           fruitsRef.current = fruitsRef.current.filter(f=>!f.sliced)
@@ -107,9 +118,9 @@ export default function FruitSlice(){
       ctx.fill()
       ctx.fillStyle = '#111'
       ctx.font = 'bold 16px system-ui'
-      ctx.fillText(`得分 ${score}`, 22, 34)
-      ctx.fillText(`❤ ${lives}`, 110, 34)
-      if(lives<=0){ ctx.fillStyle='rgba(15,23,42,.6)'; ctx.fillRect(0,0,rect.width,H); ctx.fillStyle='#fff'; ctx.font='bold 28px system-ui'; ctx.fillText('游戏结束', rect.width/2-70, H/2) }
+      ctx.fillText(`得分 ${scoreRef.current}`, 22, 34)
+      ctx.fillText(`❤ ${livesRef.current}`, 110, 34)
+      if(livesRef.current<=0){ ctx.fillStyle='rgba(15,23,42,.6)'; ctx.fillRect(0,0,rect.width,H); ctx.fillStyle='#fff'; ctx.font='bold 28px system-ui'; ctx.fillText('游戏结束', rect.width/2-70, H/2) }
 
       rafRef.current = requestAnimationFrame(draw)
     }
@@ -123,9 +134,13 @@ export default function FruitSlice(){
     cvs.addEventListener('mousedown', down); cvs.addEventListener('mousemove', move); addEventListener('mouseup', up)
     cvs.addEventListener('touchstart', down, {passive:true}); cvs.addEventListener('touchmove', move, {passive:true}); addEventListener('touchend', up)
     return ()=>{ cancelAnimationFrame(rafRef.current); removeEventListener('mouseup', up); removeEventListener('touchend', up); cvs.removeEventListener('mousedown', down as any); cvs.removeEventListener('mousemove', move as any); cvs.removeEventListener('touchstart', down as any); cvs.removeEventListener('touchmove', move as any); removeEventListener('resize', fit) }
-  }, [score,lives])
+  }, [])
 
-  function restart(){ setLives(3); setScore(0); fruitsRef.current=[] }
+  function restart(){
+    setLives(3); setScore(0);
+    livesRef.current=3; scoreRef.current=0;
+    fruitsRef.current=[]
+  }
 
   return (
     <div className="container">
