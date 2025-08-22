@@ -10,6 +10,7 @@ import BlindBox from './pages/BlindBox'
 import DoodleBoard from './pages/DoodleBoard'
 import Moyu from './pages/Moyu'
 import PopWrap from './pages/PopWrap'
+import BubbleWrap from './pages/BubbleWrap'
 import Spinner from './pages/Spinner'
 import Woodfish from './pages/Woodfish'
 import Knives from './pages/Knives'
@@ -68,6 +69,10 @@ function Home() {
             <Link className="card pop" to="/fruit"><div className="title">🍉 切水果</div><div className="desc">刀光轨迹 + 飞溅</div></Link>
             <Link className="card pop" to="/moyu"><div className="title">🐟 摸鱼模拟器</div><div className="desc">投喂/群游/昼夜</div></Link>
             <Link className="card pop" to="/popwrap"><div className="title">🫧 泡泡纸</div><div className="desc">真实POP音</div></Link>
+            <Link className="card pop" to="/bubblewrap">
+              <div className="title">🫧 泡泡纸 2</div>
+              <div className="desc">多玩法进阶版</div>
+            </Link>
             <Link className="card pop" to="/spinner"><div className="title">🌀 指尖陀螺</div><div className="desc">RPM 显示</div></Link>
             <Link className="card pop" to="/woodfish"><div className="title">🔔 木鱼</div><div className="desc">禅风 UI</div></Link>
             <Link className="card pop" to="/knives"><div className="title">🎯 飞刀靶</div><div className="desc">木靶 + 钢刀</div></Link>
@@ -115,6 +120,7 @@ export default function App(){
         <Route path="/doodle" element={<DoodleBoard/>} />
         <Route path="/moyu" element={<Moyu/>} />
         <Route path="/popwrap" element={<PopWrap/>} />
+        <Route path="/bubblewrap" element={<BubbleWrap/>} />
         <Route path="/spinner" element={<Spinner/>} />
         <Route path="/woodfish" element={<Woodfish/>} />
         <Route path="/knives" element={<Knives/>} />
