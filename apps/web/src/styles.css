@@ -41,5 +41,90 @@ footer{padding:26px 20px;color:#6b7280;text-align:center}
 @media (max-width: 960px){.grid{grid-template-columns:repeat(2,1fr)}}
 @media (max-width: 560px){.grid{grid-template-columns:1fr}.nav{display:none}}
 .stage{position:relative;border-radius:16px;overflow:hidden;box-shadow:var(--shadow);background:#fff}
+.stage, .stage * {
+    user-select: none;
+}
 .badge{position:relative;display:inline-block;background:rgba(255,255,255,.9);padding:6px 10px;border-radius:999px;font-weight:700;box-shadow:0 2px 6px rgba(2,6,23,.1)}
 .badge.negative{background:rgba(239,68,68,.9);color:#fff}
+/* ============ BubbleWrap ============ */
+.bw-root { padding: 16px; min-height: 100vh; }
+.bw-toolbar { display:flex; gap:10px; flex-wrap: wrap; align-items:center; margin-bottom:10px; }
+.bw-powers { display:flex; gap:8px; align-items:center; margin: 6px 0 12px; }
+.bw-powers .chip { border:1px solid rgba(0,0,0,.1); padding:6px 10px; border-radius:999px; background:#fff; }
+.bw-powers .chip.on { background: var(--a, #0ea5e9); color:#fff; border-color: transparent; }
+
+.bw-grid-wrap { border-radius: 18px; padding: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.08) inset, 0 8px 28px rgba(0,0,0,.06); }
+.bw-grid { display:grid; gap:10px; }
+.bw-cell { position:relative; aspect-ratio:1/1; border:none; background: transparent; padding:0; border-radius: 14px; cursor:pointer; }
+.bw-cell .bw-bump{
+  --light: rgba(255,255,255,.85);
+  position:absolute; inset:0;
+  border-radius: 14px;
+  background: radial-gradient(120% 120% at 40% 35%, var(--light) 0%, rgba(255,255,255,.6) 20%, var(--b) 60%, rgba(0,0,0,.06) 100%);
+  box-shadow:
+          0 6px 10px rgba(0,0,0,.10),
+          inset 0 -6px 14px rgba(0,0,0,.12),
+          inset 0 10px 16px rgba(255,255,255,.55);
+  transform: translateZ(0);
+  transition: transform .06s ease, box-shadow .06s ease, background .2s ease;
+}
+.bw-cell.popped .bw-bump{
+  background: radial-gradient(120% 120% at 40% 35%, rgba(0,0,0,.06) 0%, rgba(0,0,0,.08) 25%, var(--bp) 70%);
+  box-shadow:
+          inset 0 10px 18px rgba(0,0,0,.25),
+          inset 0 -8px 12px rgba(255,255,255,.25);
+  transform: scale(.985) translateY(1px);
+}
+
+/* challenge 目标高光 */
+.bw-cell.must:not(.popped) .bw-bump{
+  outline: 2px dashed var(--a);
+  outline-offset: 2px;
+  box-shadow:
+          0 0 0 0 rgba(14,165,233, .55),
+          0 6px 10px rgba(0,0,0,.10),
+          inset 0 -6px 14px rgba(0,0,0,.12),
+          inset 0 10px 16px rgba(255,255,255,.55);
+  animation: bw-pulse 1.4s ease-in-out infinite;
+}
+@keyframes bw-pulse{
+  0%{ outline-offset: 2px; }
+  50%{ outline-offset: 5px; }
+  100%{ outline-offset: 2px; }
+}
+
+/* 霓虹/玻璃风格补充 */
+.bw-cell.neon .bw-bump{
+  background: radial-gradient(120% 120% at 40% 35%, rgba(255,255,255,.18) 0%, rgba(255,255,255,.1) 20%, var(--b) 58%, rgba(2,6,23,.4) 100%);
+  box-shadow:
+          0 0 16px rgba(167,139,250,.25),
+          0 6px 12px rgba(0,0,0,.3),
+          inset 0 10px 16px rgba(255,255,255,.15),
+          inset 0 -8px 18px rgba(2,6,23,.5);
+}
+.bw-cell.neon.popped .bw-bump{
+  background: radial-gradient(110% 110% at 40% 35%, rgba(2,6,23,.55) 0%, rgba(2,6,23,.7) 40%, var(--bp) 82%);
+  box-shadow:
+          inset 0 16px 26px rgba(0,0,0,.45),
+          inset 0 -10px 16px rgba(255,255,255,.08);
+}
+.bw-cell.glass .bw-bump{
+  backdrop-filter: blur(6px);
+  background: radial-gradient(120% 120% at 40% 35%, rgba(255,255,255,.85) 0%, rgba(255,255,255,.6) 14%, var(--b) 60%);
+}
+
+/* 粒子 */
+.bw-particle{
+  position:absolute; width:6px; height:6px;
+  border-radius: 999px; pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.25));
+  transition: transform .22s ease, opacity .22s ease;
+  opacity: 0;
+  animation: bw-burst .26s ease both;
+}
+@keyframes bw-burst{
+  0%{ opacity: 0; transform: translate(0,0) scale(.4); }
+  40%{ opacity: 1; }
+  100%{ opacity: 0; transform: translate(var(--tx, 0), var(--ty, 0)) scale(1); }
+}
+/* ============ /BubbleWrap ============ */
