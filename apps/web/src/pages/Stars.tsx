@@ -49,10 +49,21 @@ export default function Stars() {
   }, [])
 
   return (
-    <div style={{ padding: '20px' }}>
-      <div style={{ color: 'var(--muted)', marginBottom: '8px' }}>得分: {score}</div>
-      <canvas ref={canvasRef} width={400} height={400} style={{ border: '2px solid #555' }} />
-      <p style={{ color: 'var(--muted)', marginTop: '10px' }}>点击星星得分</p>
+    <div className="container">
+      <h1>✨ 点点星星</h1>
+      <p className="desc">点击闪烁的星星来得分。</p>
+      <div style={{ color: 'var(--muted)', marginBottom: 8 }}>得分: {score}</div>
+      <div className="stage" style={{ width: 400, height: 400, margin: '0 auto' }}>
+        <canvas
+          ref={canvasRef}
+          width={400}
+          height={400}
+          style={{ width: '100%', height: '100%' }}
+        />
+      </div>
+      <div style={{ marginTop: 12 }}>
+        <a className="btn ghost" href="/">返回首页</a>
+      </div>
     </div>
   )
 }

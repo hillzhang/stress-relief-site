@@ -43,9 +43,18 @@ export default function TreeShake(){
   }
 
   return (
-    <div style={{textAlign:'center',padding:'20px'}}>
-      <canvas ref={canvasRef} style={{border:'1px solid #ccc'}} width={400} height={500}></canvas>
-      <div style={{marginTop:'10px'}}><button onClick={shake}>摇一摇</button></div>
+    <div className="container" style={{ textAlign: 'center' }}>
+      <h1>🌳 摇树掉果子</h1>
+      <p className="desc">点击按钮摇动树木，让果子落下。</p>
+      <div className="stage" style={{ width: 400, height: 500, margin: '0 auto' }}>
+        <canvas ref={canvasRef} width={400} height={500} style={{ width: '100%', height: '100%', border: '1px solid #ccc' }}></canvas>
+      </div>
+      <div style={{ marginTop: 10 }}>
+        <button className="btn" onClick={shake}>摇一摇</button>
+      </div>
+      <div style={{ marginTop: 12 }}>
+        <a className="btn ghost" href="/">返回首页</a>
+      </div>
     </div>
   )
 }

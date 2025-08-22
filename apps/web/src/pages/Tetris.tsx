@@ -104,9 +104,20 @@ export default function Tetris() {
   }, [])
 
   return (
-    <div style={{ padding: '20px' }}>
-      <canvas ref={canvasRef} width={COLS * SIZE} height={ROWS * SIZE} style={{ border: '2px solid #555' }} />
-      <p style={{ color: 'var(--muted)', marginTop: '10px' }}>方向键移动，上键旋转</p>
+    <div className="container">
+      <h1>🔷 俄罗斯方块</h1>
+      <p className="desc">方向键移动，上键旋转方块。</p>
+      <div className="stage" style={{ width: COLS * SIZE, height: ROWS * SIZE, margin: '0 auto' }}>
+        <canvas
+          ref={canvasRef}
+          width={COLS * SIZE}
+          height={ROWS * SIZE}
+          style={{ width: '100%', height: '100%' }}
+        />
+      </div>
+      <div style={{ marginTop: 12 }}>
+        <a className="btn ghost" href="/">返回首页</a>
+      </div>
     </div>
   )
 }

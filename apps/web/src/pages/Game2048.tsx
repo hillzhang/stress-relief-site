@@ -100,15 +100,19 @@ export default function Game2048(){
   }, [])
 
   return (
-    <div style={{padding:'20px'}}>
-      <div className="stage" style={{display:'inline-block', padding:'16px'}}>
+    <div className="container">
+      <h1>🔢 2048</h1>
+      <p className="desc">使用方向键移动方块，合并到 2048。</p>
+      <div className="stage" style={{ display: 'inline-block', padding: '16px', margin: '0 auto' }}>
         <div className="g2048-grid">
           {board.map((row, r) => row.map((v, c) => (
             <div key={`${r}-${c}`} className={`g2048-cell n${v}`}>{v || ''}</div>
           )))}
         </div>
       </div>
-      <p style={{color:'var(--muted)', marginTop:'10px'}}>使用方向键移动方块</p>
+      <div style={{ marginTop: 12 }}>
+        <a className="btn ghost" href="/">返回首页</a>
+      </div>
     </div>
   )
 }

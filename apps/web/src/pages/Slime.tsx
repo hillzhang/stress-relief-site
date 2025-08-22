@@ -32,22 +32,38 @@ export default function Slime(){
 
     function up(){ dragging.current = false; pos.current.r = 80 }
     function down(e:PointerEvent){ dragging.current = true; move(e); pos.current.r = 120 }
-    function move(e:PointerEvent){ if(!dragging.current) return; pos.current.x = e.clientX; pos.current.y = e.clientY }
+    function move(e:PointerEvent){
+      if(!dragging.current) return
+      const rect = cvs.getBoundingClientRect()
+      pos.current.x = e.clientX - rect.left
+      pos.current.y = e.clientY - rect.top
+    }
 
-    window.addEventListener('pointerdown', down)
-    window.addEventListener('pointermove', move)
+    cvs.addEventListener('pointerdown', down)
+    cvs.addEventListener('pointermove', move)
     window.addEventListener('pointerup', up)
     window.addEventListener('pointercancel', up)
     return ()=>{
       cancelAnimationFrame(raf.current)
       window.removeEventListener('resize', resize)
-      window.removeEventListener('pointerdown', down)
-      window.removeEventListener('pointermove', move)
+      cvs.removeEventListener('pointerdown', down)
+      cvs.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', up)
       window.removeEventListener('pointercancel', up)
     }
   },[])
 
-  return <canvas ref={canvasRef} style={{width:'100%',height:'100vh',touchAction:'none',background:'#222'}}></canvas>
+  return (
+    <div className="container">
+      <h1>🟢 挤压史莱姆</h1>
+      <p className="desc">拖动史莱姆，感受弹性手感。</p>
+      <div className="stage" style={{ height: 400, margin: '0 auto', touchAction: 'none' }}>
+        <canvas ref={canvasRef} style={{ width: '100%', height: '100%', background: '#222' }} />
+      </div>
+      <div style={{ marginTop: 12 }}>
+        <a className="btn ghost" href="/">返回首页</a>
+      </div>
+    </div>
+  )
 }
 

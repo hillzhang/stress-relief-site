@@ -65,27 +65,33 @@ export default function Minesweeper() {
   }
 
   return (
-    <div style={{ padding: '20px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${SIZE},30px)`, gap: '2px' }}>
-        {board.map((row, r) =>
-          row.map((cell, c) => (
-            <button
-              key={r + '-' + c}
-              onClick={() => reveal(r, c)}
-              style={{
-                width: 30,
-                height: 30,
-                border: '1px solid #888',
-                background: cell.revealed ? '#ddd' : '#bbb',
-                color: ['','blue','green','red','purple','maroon','turquoise','black','gray'][cell.count]
-              }}
-            >
-              {cell.revealed ? (cell.mine ? '💣' : cell.count || '') : ''}
-            </button>
-          ))
-        )}
+    <div className="container">
+      <h1>💣 扫雷</h1>
+      <p className="desc">点击格子，避开地雷。</p>
+      <div className="stage" style={{ display: 'inline-block', margin: '0 auto', padding: 8 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${SIZE},30px)`, gap: '2px' }}>
+          {board.map((row, r) =>
+            row.map((cell, c) => (
+              <button
+                key={r + '-' + c}
+                onClick={() => reveal(r, c)}
+                style={{
+                  width: 30,
+                  height: 30,
+                  border: '1px solid #888',
+                  background: cell.revealed ? '#ddd' : '#bbb',
+                  color: ['','blue','green','red','purple','maroon','turquoise','black','gray'][cell.count]
+                }}
+              >
+                {cell.revealed ? (cell.mine ? '💣' : cell.count || '') : ''}
+              </button>
+            ))
+          )}
+        </div>
       </div>
-      <p style={{ color: 'var(--muted)', marginTop: '10px' }}>点击格子，避开地雷</p>
+      <div style={{ marginTop: 12 }}>
+        <a className="btn ghost" href="/">返回首页</a>
+      </div>
     </div>
   )
 }

@@ -111,9 +111,20 @@ export default function Pacman() {
   }, [])
 
   return (
-    <div style={{ padding: '20px' }}>
-      <canvas ref={canvasRef} width={COLS * CELL} height={ROWS * CELL} style={{ border: '2px solid #555' }} />
-      <p style={{ color: 'var(--muted)', marginTop: '10px' }}>方向键控制吃豆人</p>
+    <div className="container">
+      <h1>👻 吃豆人</h1>
+      <p className="desc">使用方向键躲避幽灵并吃掉豆子。</p>
+      <div className="stage" style={{ width: COLS * CELL, height: ROWS * CELL, margin: '0 auto' }}>
+        <canvas
+          ref={canvasRef}
+          width={COLS * CELL}
+          height={ROWS * CELL}
+          style={{ width: '100%', height: '100%' }}
+        />
+      </div>
+      <div style={{ marginTop: 12 }}>
+        <a className="btn ghost" href="/">返回首页</a>
+      </div>
     </div>
   )
 }

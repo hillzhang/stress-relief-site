@@ -89,9 +89,20 @@ export default function Space() {
   }, [])
 
   return (
-    <div style={{ padding: '20px' }}>
-      <canvas ref={canvasRef} width={WIDTH} height={HEIGHT} style={{ border: '2px solid #555' }} />
-      <p style={{ color: 'var(--muted)', marginTop: '10px' }}>左右移动，空格射击</p>
+    <div className="container">
+      <h1>🚀 太空射击</h1>
+      <p className="desc">左右移动飞船，空格键射击敌人。</p>
+      <div className="stage" style={{ width: WIDTH, height: HEIGHT, margin: '0 auto' }}>
+        <canvas
+          ref={canvasRef}
+          width={WIDTH}
+          height={HEIGHT}
+          style={{ width: '100%', height: '100%' }}
+        />
+      </div>
+      <div style={{ marginTop: 12 }}>
+        <a className="btn ghost" href="/">返回首页</a>
+      </div>
     </div>
   )
 }

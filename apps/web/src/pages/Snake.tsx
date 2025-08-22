@@ -59,9 +59,20 @@ export default function Snake() {
   }, [])
 
   return (
-    <div style={{ padding: '20px' }}>
-      <canvas ref={canvasRef} width={SIZE * CELL} height={SIZE * CELL} style={{ border: '2px solid #555' }} />
-      <p style={{ color: 'var(--muted)', marginTop: '10px' }}>使用方向键控制蛇</p>
+    <div className="container">
+      <h1>🐍 贪吃蛇</h1>
+      <p className="desc">使用方向键控制蛇吃食物。</p>
+      <div className="stage" style={{ width: SIZE * CELL, height: SIZE * CELL, margin: '0 auto' }}>
+        <canvas
+          ref={canvasRef}
+          width={SIZE * CELL}
+          height={SIZE * CELL}
+          style={{ width: '100%', height: '100%' }}
+        />
+      </div>
+      <div style={{ marginTop: 12 }}>
+        <a className="btn ghost" href="/">返回首页</a>
+      </div>
     </div>
   )
 }
