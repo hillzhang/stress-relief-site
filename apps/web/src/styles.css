@@ -127,4 +127,18 @@ footer{padding:26px 20px;color:#6b7280;text-align:center}
   40%{ opacity: 1; }
   100%{ opacity: 0; transform: translate(var(--tx, 0), var(--ty, 0)) scale(1); }
 }
-/* ============ /BubbleWrap ============ */
+/* ============ BubbleWrap ============ */
+/* ============ 2048 Game ============ */
+.g2048-grid{display:grid;grid-template-columns:repeat(4,70px);gap:10px;background:#bbada0;padding:10px;border-radius:8px}
+.g2048-cell{width:70px;height:70px;border-radius:4px;background:#cdc1b4;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px;color:#776e65}
+.g2048-cell.n2{background:#eee4da}
+.g2048-cell.n4{background:#ede0c8}
+.g2048-cell.n8{background:#f2b179;color:#f9f6f2}
+.g2048-cell.n16{background:#f59563;color:#f9f6f2}
+.g2048-cell.n32{background:#f67c5f;color:#f9f6f2}
+.g2048-cell.n64{background:#f65e3b;color:#f9f6f2}
+.g2048-cell.n128{background:#edcf72;color:#f9f6f2;font-size:20px}
+.g2048-cell.n256{background:#edcc61;color:#f9f6f2;font-size:20px}
+.g2048-cell.n512{background:#edc850;color:#f9f6f2;font-size:20px}
+.g2048-cell.n1024{background:#edc53f;color:#f9f6f2;font-size:16px}
+.g2048-cell.n2048{background:#edc22e;color:#f9f6f2;font-size:16px}

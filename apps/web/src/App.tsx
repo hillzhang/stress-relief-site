@@ -15,10 +15,21 @@ import Spinner from './pages/Spinner'
 import Woodfish from './pages/Woodfish'
 import Knives from './pages/Knives'
 import Fireworks from './pages/Fireworks'
+import Slime from './pages/Slime'
+import Screw from './pages/Screw'
+import TreeShake from './pages/TreeShake'
 // new games
 import Breakout from './pages/Breakout'
 import Mole from './pages/Mole'
 import Memory from './pages/Memory'
+import Game2048 from './pages/Game2048'
+import Snake from './pages/Snake'
+import Tetris from './pages/Tetris'
+import Stars from './pages/Stars'
+import Minesweeper from './pages/Minesweeper'
+import Pacman from './pages/Pacman'
+import FlappyBird from './pages/FlappyBird'
+import Space from './pages/Space'
 
 import './styles.css'
 
@@ -80,6 +91,14 @@ function Home() {
             <Link className="card pop" to="/breakout"><div className="title">🧱 打砖块</div><div className="desc">经典复刻</div></Link>
             <Link className="card pop" to="/mole"><div className="title">🐹 打地鼠</div><div className="desc">限时反应</div></Link>
             <Link className="card pop" to="/memory"><div className="title">🃏 记忆翻牌</div><div className="desc">配对放松</div></Link>
+            <Link className="card pop" to="/2048"><div className="title">🔢 2048</div><div className="desc">合成数字</div></Link>
+            <Link className="card pop" to="/snake"><div className="title">🐍 贪吃蛇</div><div className="desc">经典玩法</div></Link>
+            <Link className="card pop" to="/tetris"><div className="title">🧊 俄罗斯方块</div><div className="desc">方块消除</div></Link>
+            <Link className="card pop" to="/stars"><div className="title">⭐ 点点星星</div><div className="desc">点击得分</div></Link>
+            <Link className="card pop" to="/minesweeper"><div className="title">💣 扫雷</div><div className="desc">逻辑推理</div></Link>
+            <Link className="card pop" to="/pacman"><div className="title">👻 吃豆人</div><div className="desc">吃豆躲鬼</div></Link>
+            <Link className="card pop" to="/flappy"><div className="title">🐤 跳跃鸟</div><div className="desc">穿越水管</div></Link>
+            <Link className="card pop" to="/space"><div className="title">🚀 太空射击</div><div className="desc">击退入侵</div></Link>
           </div>
         </section>
 
@@ -89,6 +108,9 @@ function Home() {
             <Link className="card pop" to="/breath"><div className="title">😮‍💨 呼吸训练</div><div className="desc">4-4-4-4 / 4-7-8</div></Link>
             <Link className="card pop" to="/doodle"><div className="title">🎨 涂鸦板</div><div className="desc">形状/贴纸/撤销</div></Link>
             <Link className="card pop" to="/noise"><div className="title">🎵 白噪音</div><div className="desc">淡入淡出</div></Link>
+            <Link className="card pop" to="/slime"><div className="title">🟢 挤压史莱姆</div><div className="desc">黏糊弹性</div></Link>
+            <Link className="card pop" to="/screw"><div className="title">🔩 旋转螺丝</div><div className="desc">拧松进度</div></Link>
+            <Link className="card pop" to="/tree"><div className="title">🌳 摇树掉果子</div><div className="desc">摇一摇</div></Link>
           </div>
         </section>
 
@@ -128,6 +150,17 @@ export default function App(){
         <Route path="/breakout" element={<Breakout/>} />
         <Route path="/mole" element={<Mole/>} />
         <Route path="/memory" element={<Memory/>} />
+        <Route path="/2048" element={<Game2048/>} />
+        <Route path="/snake" element={<Snake/>} />
+        <Route path="/tetris" element={<Tetris/>} />
+        <Route path="/stars" element={<Stars/>} />
+        <Route path="/minesweeper" element={<Minesweeper/>} />
+        <Route path="/pacman" element={<Pacman/>} />
+        <Route path="/flappy" element={<FlappyBird/>} />
+        <Route path="/space" element={<Space/>} />
+        <Route path="/slime" element={<Slime/>} />
+        <Route path="/screw" element={<Screw/>} />
+        <Route path="/tree" element={<TreeShake/>} />
       </Routes>
     </BrowserRouter>
   )

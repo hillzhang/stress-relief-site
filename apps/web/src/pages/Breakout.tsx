@@ -228,8 +228,7 @@ export default function Breakout(){
         balls.forEach(b=> b.held = false)
       }
       if(e.type==='keydown' && e.key.toLowerCase()==='r'){ // quick restart
-        if(over||won){ over=false; setOver(false); setWon(false); setScore(0); setLives(3); setLevel(1); makeBricks(4,9); resetBall();
-        }
+        if(over||won){ setOver(false); setWon(false); setScore(0); setLives(3); setLevel(1); makeBricks(4,9); resetBall(); }
       }
     }
     addEventListener('keydown', key); addEventListener('keyup', key)
