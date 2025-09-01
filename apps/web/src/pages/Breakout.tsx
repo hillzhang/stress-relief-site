@@ -112,6 +112,12 @@ export default function Breakout(){
   const [won, setWon] = useState(false)
   const [muted, setMuted] = useState(false)
   const [runKey, setRunKey] = useState(0)
+  const livesRef = useRef(lives)
+  const overRef = useRef(over)
+  const wonRef = useRef(won)
+  useEffect(()=>{ livesRef.current = lives }, [lives])
+  useEffect(()=>{ overRef.current = over }, [over])
+  useEffect(()=>{ wonRef.current = won }, [won])
   const sfx = useSfx(muted)
   const sfxRef = useRef(sfx)
   useEffect(()=>{ sfxRef.current = sfx }, [sfx])
@@ -119,6 +125,11 @@ export default function Breakout(){
   useEffect(()=>{
     const cvs = ref.current!
     const ctx = (cvs.getContext('2d', { alpha:false }) as CanvasRenderingContext2D) || cvs.getContext('2d')!
+
+    // Snapshot canvas for freezing the last frame on end states
+    const snap = document.createElement('canvas')
+    const sctx = snap.getContext('2d') as CanvasRenderingContext2D
+    let hasSnap = false
 
     // devicePixelRatio‑safe sizing
     let rect = cvs.getBoundingClientRect()
@@ -129,6 +140,14 @@ export default function Breakout(){
       cvs.width = Math.max(320, rect.width * DPR)
       cvs.height = 520 * DPR
       ctx.setTransform(DPR,0,0,DPR,0,0)
+      // 如果已有快照，先把快照按新尺寸绘回画布，避免因 resize 清空导致的空白
+      if(hasSnap){
+        // 临时用 1:1 变换绘制整幅快照，再恢复 DPR 变换
+        ctx.save()
+        ctx.setTransform(1,0,0,1,0,0)
+        ctx.drawImage(snap, 0, 0, cvs.width, cvs.height)
+        ctx.restore()
+      }
     }
     cvs.style.width='100%'; cvs.style.height='520px'
     fit(); addEventListener('resize', fit)
@@ -154,7 +173,7 @@ export default function Breakout(){
     const obstacles: Obstacle[] = []
 
     // 临时增益效果（秒）
-    let widenT = 0, slowT = 0, stickyT = 0, fireT = 0
+    let widenT = 0, slowT = 0, stickyT = 0, fireT = 0, lifeFreezeT = 0
 
     function makeBricks(rows:number, cols:number){
       bricks.length = 0
@@ -194,15 +213,18 @@ export default function Breakout(){
     }
 
     function resetBall(){
-      // 重置为单球，附着在球拍上
-      balls.length = 1
-      balls[0].x = paddle.x + paddle.w/2
-      balls[0].y = paddle.y - 12
+      // 重置为单球，附着在球拍上（不要直接改 balls[0]，重新构造对象以避免 undefined）
       const lvScale = 1 + (level-1)*0.05
-      balls[0].vx = ((Math.random() * 120) - 60) * lvScale
-      balls[0].vy = (-200 - Math.random()*60) * lvScale
-      balls[0].r = 8
-      balls[0].held = true
+      const newBall: Ball = {
+        x: paddle.x + paddle.w/2,
+        y: paddle.y - 12,
+        vx: ((Math.random() * 120) - 60) * lvScale,
+        vy: (-200 - Math.random()*60) * lvScale,
+        r: 8,
+        held: true,
+      }
+      balls.length = 0
+      balls.push(newBall)
     }
 
     function addBall(base?: Ball){
@@ -222,13 +244,15 @@ export default function Breakout(){
       if(e.key==='ArrowLeft' || e.key==='a') left = e.type==='keydown'
       if(e.key==='ArrowRight'|| e.key==='d') right = e.type==='keydown'
       if(e.type==='keydown' && (e.key===' ' || e.key==='Enter')){
+        // 结束态不允许再发球
+        if(overRef.current || wonRef.current) return
         // 任意有持球则发球并播放一次
         const anyHeld = balls.some(b=>b.held)
         if(anyHeld) sfxRef.current.launch()
         balls.forEach(b=> b.held = false)
       }
       if(e.type==='keydown' && e.key.toLowerCase()==='r'){ // quick restart
-        if(over||won){ setOver(false); setWon(false); setScore(0); setLives(3); setLevel(1); makeBricks(4,9); resetBall(); }
+        if(overRef.current || wonRef.current){ setOver(false); setWon(false); setScore(0); setLives(3); setLevel(1); makeBricks(4,9); resetBall(); }
       }
     }
     addEventListener('keydown', key); addEventListener('keyup', key)
@@ -241,6 +265,7 @@ export default function Breakout(){
     }
     cvs.addEventListener('pointermove', pointerMove)
     const onPointerDown = () => {
+      if(overRef.current || wonRef.current) return
       const anyHeld = balls.some(b=>b.held)
       if(anyHeld){ sfxRef.current.launch() }
       balls.forEach(b=> b.held = false)
@@ -248,6 +273,15 @@ export default function Breakout(){
     cvs.addEventListener('pointerdown', onPointerDown)
 
     // helpers
+    // 颜色明暗辅助（-1..1），用于砖块渐变/描边
+    function shade(hex:string, amt:number){
+      const h = hex.replace('#','')
+      const num = parseInt(h,16)
+      const r = Math.max(0, Math.min(255, ((num>>16)&255) + Math.floor(amt*255)))
+      const g = Math.max(0, Math.min(255, ((num>>8)&255)  + Math.floor(amt*255)))
+      const b = Math.max(0, Math.min(255, (num&255)       + Math.floor(amt*255)))
+      return `#${(r<<16 | g<<8 | b).toString(16).padStart(6,'0')}`
+    }
     function drawPaddle(){
       ctx.fillStyle = '#ffffff'
       if ((ctx as any).roundRect){ (ctx as any).roundRect(paddle.x, paddle.y, paddle.w, paddle.h, 6); ctx.fill() } else { ctx.fillRect(paddle.x,paddle.y,paddle.w,paddle.h) }
@@ -269,61 +303,131 @@ export default function Breakout(){
     }
 
     function drawBrick(b:Brick){
-      ctx.fillStyle = b.color
-      if ((ctx as any).roundRect){ (ctx as any).roundRect(b.x,b.y,b.w,b.h,4); ctx.fill() } else { ctx.fillRect(b.x,b.y,b.w,b.h) }
-      // glossy line
-      ctx.fillStyle = 'rgba(255,255,255,.25)'
-      ctx.fillRect(b.x+2,b.y+2,b.w-4,2)
+      // 路径
+      ctx.beginPath()
+      if ((ctx as any).roundRect){ (ctx as any).roundRect(b.x,b.y,b.w,b.h,4) } else { ctx.rect(b.x,b.y,b.w,b.h) }
+
+      // 渐变主体（上下明暗）
+      const g = ctx.createLinearGradient(0,b.y,0,b.y+b.h)
+      g.addColorStop(0, shade(b.color, 0.22))
+      g.addColorStop(0.55, b.color)
+      g.addColorStop(1, shade(b.color, -0.18))
+      ctx.fillStyle = g
+      ctx.fill()
+
+      // 外描边（更深一档）
+      ctx.strokeStyle = shade(b.color, -0.28)
+      ctx.lineWidth = 1
+      ctx.stroke()
+
+      // 亮边高光（上沿内发光）
+      ctx.save()
+      ctx.beginPath()
+      if ((ctx as any).roundRect){ (ctx as any).roundRect(b.x+1,b.y+1,b.w-2,5,3) } else { ctx.rect(b.x+1,b.y+1,b.w-2,5) }
+      const hg = ctx.createLinearGradient(0,b.y+1,0,b.y+6)
+      hg.addColorStop(0,'rgba(255,255,255,.55)')
+      hg.addColorStop(1,'rgba(255,255,255,0)')
+      ctx.fillStyle = hg
+      ctx.fill()
+      ctx.restore()
+
+      // 底部内阴影
+      ctx.save()
+      ctx.beginPath()
+      if ((ctx as any).roundRect){ (ctx as any).roundRect(b.x+1,b.y+b.h-4,b.w-2,3,2) } else { ctx.rect(b.x+1,b.y+b.h-4,b.w-2,3) }
+      const sg = ctx.createLinearGradient(0,b.y+b.h-4,0,b.y+b.h)
+      sg.addColorStop(0,'rgba(0,0,0,.18)')
+      sg.addColorStop(1,'rgba(0,0,0,0)')
+      ctx.fillStyle = sg
+      ctx.fill()
+      ctx.restore()
+
+      // 细节：两侧铆钉感点缀（可选）
+      ctx.fillStyle = 'rgba(255,255,255,.18)'
+      ctx.beginPath(); ctx.arc(b.x+6, b.y+b.h/2, 1.2, 0, Math.PI*2); ctx.fill()
+      ctx.beginPath(); ctx.arc(b.x+b.w-6, b.y+b.h/2, 1.2, 0, Math.PI*2); ctx.fill()
     }
 
-    // Draw a power-up tile with icon
+    // Draw a power-up tile with a more realistic glossy style
     function drawPowerUp(p: PowerUp){
-      // colored tile background
-      const color = p.kind==='multi' ? '#10b981' : p.kind==='widen' ? '#f59e0b' : p.kind==='slow' ? '#3b82f6' : p.kind==='sticky' ? '#8b5cf6' : '#ef4444'
-      ctx.fillStyle = color
-      if ((ctx as any).roundRect){ (ctx as any).roundRect(p.x, p.y, p.w, p.h, 3); ctx.fill() } else { ctx.fillRect(p.x, p.y, p.w, p.h) }
+      // base color by kind
+      const base = p.kind==='multi' ? '#0ea5e9' // cyan-blue
+          : p.kind==='widen' ? '#f59e0b' // amber
+              : p.kind==='slow'  ? '#3b82f6' // blue
+                  : p.kind==='sticky'? '#8b5cf6' // violet
+                      : '#ef4444'                     // red (fire)
 
-      // white icon
-      const cx = p.x + p.w/2, cy = p.y + p.h/2
+      const x=p.x, y=p.y, w=p.w, h=p.h, r=4
+
+      // soft drop shadow
+      ctx.save()
+      ctx.fillStyle = 'rgba(0,0,0,.25)'
+      if((ctx as any).roundRect){ (ctx as any).roundRect(x+1.5, y+2.5, w, h, r); ctx.fill() } else { ctx.fillRect(x+1.5,y+2.5,w,h) }
+      ctx.restore()
+
+      // glossy gradient body
+      const g = ctx.createLinearGradient(0,y,0,y+h)
+      g.addColorStop(0, shade(base, 0.20))
+      g.addColorStop(0.5, base)
+      g.addColorStop(1, shade(base, -0.25))
+      ctx.fillStyle = g
+      ctx.beginPath(); if((ctx as any).roundRect){ (ctx as any).roundRect(x,y,w,h,r) } else { ctx.rect(x,y,w,h) } ctx.fill()
+
+      // inner stroke
+      ctx.strokeStyle = shade(base, -0.35)
+      ctx.lineWidth = 1
+      ctx.stroke()
+
+      // top glossy highlight
+      ctx.save()
+      const hg = ctx.createLinearGradient(0,y,0,y+h*0.45)
+      hg.addColorStop(0, 'rgba(255,255,255,.7)')
+      hg.addColorStop(1, 'rgba(255,255,255,0)')
+      ctx.fillStyle = hg
+      ctx.beginPath(); if((ctx as any).roundRect){ (ctx as any).roundRect(x+1,y+1,w-2,Math.max(4,h*0.45), r*0.7) } else { ctx.rect(x+1,y+1,w-2,Math.max(4,h*0.45)) } ctx.fill()
+      ctx.restore()
+
+      // icon (white w/ tiny shadow)
+      const cx = x + w/2, cy = y + h/2
       ctx.save();
       ctx.translate(cx, cy)
-      ctx.scale(1.4, 1.4)
+      ctx.shadowColor = 'rgba(0,0,0,.18)'; ctx.shadowBlur=1.2; ctx.shadowOffsetY=0.6
       ctx.strokeStyle = 'rgba(255,255,255,.95)'
       ctx.fillStyle   = 'rgba(255,255,255,.95)'
       ctx.lineWidth = 1.6
 
       if(p.kind==='multi'){
-        // triangle of three dots
-        const r = 1.6
-        ctx.beginPath(); ctx.arc(-3, 0, r, 0, Math.PI*2); ctx.fill()
-        ctx.beginPath(); ctx.arc(0, -3, r, 0, Math.PI*2); ctx.fill()
-        ctx.beginPath(); ctx.arc(3, 2, r, 0, Math.PI*2); ctx.fill()
+        // three glossy balls
+        const balls = [ [-4,0], [0,-3], [4,2] ]
+        for(const [dx,dy] of balls){
+          const bx = dx, by = dy, br = 2.1
+          // ball body w/ radial highlight
+          const rg = ctx.createRadialGradient(bx-0.8, by-0.8, 0.2, bx, by, br)
+          rg.addColorStop(0,'#fff'); rg.addColorStop(1,'#dbeafe')
+          ctx.fillStyle = rg
+          ctx.beginPath(); ctx.arc(bx,by,br,0,Math.PI*2); ctx.fill()
+        }
       } else if(p.kind==='widen'){
-        // double arrow ↔
-        ctx.beginPath(); ctx.moveTo(-4, 0); ctx.lineTo(4, 0); ctx.stroke()
-        ctx.beginPath(); ctx.moveTo(-6, 0); ctx.lineTo(-2, -2); ctx.lineTo(-2, 2); ctx.closePath(); ctx.fill()
-        ctx.beginPath(); ctx.moveTo(6, 0); ctx.lineTo(2, -2); ctx.lineTo(2, 2); ctx.closePath(); ctx.fill()
+        // double arrow ↔ (filled heads + stroke line)
+        ctx.beginPath(); ctx.moveTo(-6, 0); ctx.lineTo(6, 0); ctx.stroke()
+        ctx.beginPath(); ctx.moveTo(-8, 0); ctx.lineTo(-3, -3); ctx.lineTo(-3, 3); ctx.closePath(); ctx.fill()
+        ctx.beginPath(); ctx.moveTo(8, 0); ctx.lineTo(3, -3); ctx.lineTo(3, 3); ctx.closePath(); ctx.fill()
       } else if(p.kind==='slow'){
-        // hourglass
-        ctx.beginPath();
-        ctx.moveTo(-4, -4); ctx.lineTo(4, -4); ctx.lineTo(-2, 0); ctx.lineTo(4, 4); ctx.lineTo(-4, 4); ctx.lineTo(2, 0); ctx.closePath();
-        ctx.stroke()
+        // hourglass with hollow center
+        ctx.beginPath(); ctx.moveTo(-5,-5); ctx.lineTo(5,-5); ctx.lineTo(-2,0); ctx.lineTo(5,5); ctx.lineTo(-5,5); ctx.lineTo(2,0); ctx.closePath(); ctx.stroke()
+        ctx.beginPath(); ctx.moveTo(-2,0); ctx.lineTo(2,0); ctx.stroke()
       } else if(p.kind==='sticky'){
-        // droplet
-        ctx.beginPath();
-        ctx.moveTo(0, -4)
-        ctx.quadraticCurveTo(4, -1, 2.5, 2.5)
-        ctx.quadraticCurveTo(0, 5, -2.5, 2.5)
-        ctx.quadraticCurveTo(-4, -1, 0, -4)
-        ctx.closePath(); ctx.fill()
+        // glossy droplet
+        ctx.beginPath(); ctx.moveTo(0,-5); ctx.quadraticCurveTo(5,-1, 3,3); ctx.quadraticCurveTo(0,6, -3,3); ctx.quadraticCurveTo(-5,-1, 0,-5); ctx.closePath(); ctx.fill()
+        // droplet highlight
+        ctx.fillStyle='rgba(255,255,255,.6)'
+        ctx.beginPath(); ctx.ellipse(-1.2, -1.8, 1.6, 0.9, -0.6, 0, Math.PI*2); ctx.fill()
       } else if(p.kind==='fire'){
-        // flame
-        ctx.beginPath();
-        ctx.moveTo(0, -4)
-        ctx.quadraticCurveTo(3, -2, 1.5, 1.5)
-        ctx.quadraticCurveTo(0, 4, -1.5, 1.5)
-        ctx.quadraticCurveTo(-3, -2, 0, -4)
-        ctx.closePath(); ctx.fill()
+        // flame with inner gradient
+        const fg = ctx.createLinearGradient(0,-6,0,6)
+        fg.addColorStop(0,'#fff7ad'); fg.addColorStop(1,'#ffd166')
+        ctx.fillStyle = fg
+        ctx.beginPath(); ctx.moveTo(0,-6); ctx.quadraticCurveTo(3,-2, 1.8,2); ctx.quadraticCurveTo(0,6, -1.8,2); ctx.quadraticCurveTo(-3,-2, 0,-6); ctx.closePath(); ctx.fill()
       }
       ctx.restore()
     }
@@ -331,11 +435,40 @@ export default function Breakout(){
     // 顶部 HUD 已移除：得分/关卡/生命等信息在画布下方的工具条展示
     function drawHUD(){ /* no-op */ }
 
+    // 一次性完整渲染当前场景（避免某些分支里只保留渐变背景导致“空白”）
+    function renderScene(){
+      const w=W(), h=H
+      // 背景
+      const bg=ctx.createLinearGradient(0,0,w,h); bg.addColorStop(0,'#a2d2ff'); bg.addColorStop(1,'#cdb4db')
+      ctx.fillStyle=bg; ctx.fillRect(0,0,w,h)
+      // HUD/砖块/障碍/道具/拍子/球
+      drawHUD()
+      bricks.forEach(b=> b.alive && drawBrick(b))
+      ctx.fillStyle = 'rgba(30,41,59,0.25)'
+      obstacles.forEach(o=>{
+        if((ctx as any).roundRect){ (ctx as any).roundRect(o.x,o.y,o.w,o.h,3); ctx.fill() }
+        else { ctx.fillRect(o.x,o.y,o.w,o.h) }
+      })
+      for(const p of powerUps){ drawPowerUp(p) }
+      drawPaddle()
+      drawBalls()
+    }
+
     let last=performance.now(), raf=0
     function step(now:number){
       const dt=Math.min(0.033,(now-last)/1000); last=now
       // 本帧音效队列：先收集，绘制完成后统一触发，避免“先声后画”错觉
       const sounds: Array<() => void> = []
+      // 若处于掉命冻结期，直接显示上一帧快照，避免任何清空/重排造成的空白
+      if(lifeFreezeT > 0){
+        lifeFreezeT = Math.max(0, lifeFreezeT - dt)
+        ctx.save()
+        ctx.setTransform(1,0,0,1,0,0)
+        ctx.drawImage(snap, 0, 0, cvs.width, cvs.height)
+        ctx.restore()
+        raf = requestAnimationFrame(step)
+        return
+      }
       // 增益计时衰减 & 生效
       widenT = Math.max(0, widenT - dt)
       slowT  = Math.max(0, slowT  - dt)
@@ -428,14 +561,47 @@ export default function Breakout(){
         outIdx.sort((a,b)=>b-a).forEach(idx=>{ balls.splice(idx,1) })
         if(balls.length===0){
           sfxRef.current.lose()
-          setLives(l=>{
-            const nl = l-1
-            if(nl<=0){ setOver(true); cancelAnimationFrame(raf); return 0 }
-            resetBall();
-            return nl
-          })
-          drawHUD(); drawPaddle(); bricks.forEach(b=> b.alive && drawBrick(b)); drawBalls();
-          raf=requestAnimationFrame(step); return
+          const nl = livesRef.current - 1
+          if(nl <= 0){
+            setLives(0)
+            setOver(true)
+
+            // 渲染一帧并建立快照后定格，确保不是空背景
+            renderScene()
+            snap.width = cvs.width
+            snap.height = cvs.height
+            sctx.clearRect(0,0,snap.width,snap.height)
+            sctx.drawImage(cvs,0,0)
+            hasSnap = true
+
+            ctx.save()
+            ctx.setTransform(1,0,0,1,0,0)
+            ctx.drawImage(snap, 0, 0, cvs.width, cvs.height)
+            ctx.restore()
+
+            sounds.forEach(fn=>{ try{ fn() }catch{} })
+            return
+          } else {
+            setLives(nl)
+            resetBall()
+            // 开启 250ms 冻结：定格完整画面
+            lifeFreezeT = 0.25
+            // 先完整渲染一帧（砖块/拍子/球/道具），再更新快照并立刻贴到画布
+            renderScene()
+            snap.width = cvs.width
+            snap.height = cvs.height
+            sctx.clearRect(0,0,snap.width,snap.height)
+            sctx.drawImage(cvs,0,0)
+            hasSnap = true
+            ctx.save()
+            ctx.setTransform(1,0,0,1,0,0)
+            ctx.drawImage(snap, 0, 0, cvs.width, cvs.height)
+            ctx.restore()
+
+            sounds.forEach(fn=>{ try{ fn() }catch{} })
+            raf=requestAnimationFrame(step)
+            return
+          }
         }
       }
 
@@ -466,36 +632,32 @@ export default function Breakout(){
       if(aliveCount===0){
         sounds.push(()=>sfxRef.current.win())
         setWon(true)
-        // Freeze all balls immediately to avoid drifting/falling after win
         balls.forEach(b=>{ b.held = true; b.vx = 0; b.vy = 0 })
-        // Draw a final frame and stop here (do not schedule next RAF)
-        drawHUD()
-        bricks.forEach(b=> b.alive && drawBrick(b))
-        drawPaddle()
-        // 障碍物
-        ctx.fillStyle = 'rgba(30,41,59,0.25)'
-        obstacles.forEach(o=>{ if((ctx as any).roundRect){ (ctx as any).roundRect(o.x,o.y,o.w,o.h,3); ctx.fill() } else { ctx.fillRect(o.x,o.y,o.w,o.h) } })
-        // 绘制掉落物
-        for(const p of powerUps){ drawPowerUp(p) }
-        drawBalls()
-        // 画面已更新，再触发本帧音效
+
+// 完整渲染一帧定格
+        renderScene()
         sounds.forEach(fn=>{ try{ fn() }catch{} })
+
+// cache the final frame for overlay display
+        snap.width = cvs.width
+        snap.height = cvs.height
+        sctx.clearRect(0,0,snap.width,snap.height)
+        sctx.drawImage(cvs,0,0)
+        hasSnap = true
         return
       }
 
-      // draw
-      drawHUD()
-      bricks.forEach(b=> b.alive && drawBrick(b))
-      drawPaddle()
-      // 障碍物
-      ctx.fillStyle = 'rgba(30,41,59,0.25)'
-      obstacles.forEach(o=>{ if((ctx as any).roundRect){ (ctx as any).roundRect(o.x,o.y,o.w,o.h,3); ctx.fill() } else { ctx.fillRect(o.x,o.y,o.w,o.h) } })
-      // 绘制掉落物
-      for(const p of powerUps){ drawPowerUp(p) }
-      drawBalls()
+      // draw（统一一次完整渲染，防止只绘背景导致的“空白帧”）
+      renderScene()
 
       // 画面已更新，再触发本帧音效，保证“看到接触”的瞬间才听到
       sounds.forEach(fn=>{ try{ fn() }catch{} })
+      // cache the fully rendered frame
+      snap.width = cvs.width
+      snap.height = cvs.height
+      sctx.clearRect(0,0,snap.width,snap.height)
+      sctx.drawImage(cvs,0,0)
+      hasSnap = true
 
       raf=requestAnimationFrame(step)
     }
@@ -510,37 +672,37 @@ export default function Breakout(){
   function nextLevel(){ setLevel(l=>l+1); setOver(false); setWon(false) }
 
   return (
-    <div className="container" style={{position:'relative'}}>
-      <h1>🧱 打砖块（升级版）</h1>
-      <p className="desc">左右键 / A·D 移动；点击或空格发球；有生命、关卡与更好的手感。</p>
-      <div className="stage" style={{height:520, position:'relative'}}>
-        <canvas ref={ref} style={{width:'100%', height:'100%'}}/>
-      </div>
-      <div style={{display:'flex', gap:12, marginTop:12, flexWrap:'wrap', alignItems:'center'}}>
-        <div className="badge">得分 {score}</div>
-        <div className="badge">关卡 {level}</div>
-        <div className="badge">生命 {lives}</div>
-        <button className="btn ghost" onClick={restartAll}>重新开始</button>
-        <button className="btn ghost" onClick={()=>setMuted(m=>!m)}>音效：{muted?'关':'开'}</button>
-        <a className="btn ghost" href="/">返回首页</a>
-      </div>
-
-      {(over || won) && (
-        <div style={{
-          position:'absolute', inset:0, background:'rgba(0,0,0,.55)', color:'#fff',
-          display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column',
-          zIndex:10
-        }}>
-          <div style={{fontSize:22, marginBottom:12}}>{won ? `关卡 ${level} 完成！` : '游戏结束'}</div>
-          <div style={{display:'flex', gap:8}}>
-            <button className="btn primary" onClick={won ? nextLevel : restartAll}>{won ? '下一关' : '重新开始'}</button>
-            <button className="btn ghost" onClick={()=>{
-              if(won){ setWon(false); setRunKey(k=>k+1) }
-              else { setOver(false); setRunKey(k=>k+1) }
-            }}>关闭</button>
-          </div>
+      <div className="container" style={{position:'relative'}}>
+        <h1>🧱 打砖块（升级版）</h1>
+        <p className="desc">左右键 / A·D 移动；点击或空格发球；有生命、关卡与更好的手感。</p>
+        <div className="stage" style={{height:520, position:'relative'}}>
+          <canvas ref={ref} style={{width:'100%', height:'100%'}}/>
         </div>
-      )}
-    </div>
+        <div style={{display:'flex', gap:12, marginTop:12, flexWrap:'wrap', alignItems:'center'}}>
+          <div className="badge">得分 {score}</div>
+          <div className="badge">关卡 {level}</div>
+          <div className="badge">生命 {lives}</div>
+          <button className="btn ghost" onClick={restartAll}>重新开始</button>
+          <button className="btn ghost" onClick={()=>setMuted(m=>!m)}>音效：{muted?'关':'开'}</button>
+          <a className="btn ghost" href="/">返回首页</a>
+        </div>
+
+        {(over || won) && (
+            <div style={{
+              position:'absolute', inset:0, background:'rgba(0,0,0,.55)', color:'#fff',
+              display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column',
+              zIndex:10
+            }}>
+              <div style={{fontSize:22, marginBottom:12}}>{won ? `关卡 ${level} 完成！` : '游戏结束'}</div>
+              <div style={{display:'flex', gap:8}}>
+                <button className="btn primary" onClick={won ? nextLevel : restartAll}>{won ? '下一关' : '重新开始'}</button>
+                <button className="btn ghost" onClick={()=>{
+                  if(won){ setWon(false); setRunKey(k=>k+1) }
+                  else { setOver(false); setRunKey(k=>k+1) }
+                }}>关闭</button>
+              </div>
+            </div>
+        )}
+      </div>
   )
 }

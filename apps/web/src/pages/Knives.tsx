@@ -232,15 +232,36 @@ function woodTexture(ctx:CanvasRenderingContext2D, x:number,y:number,r:number){
   ctx.beginPath(); ctx.arc(x-8,y-8,r-6,0.2,1.2); ctx.stroke()
 }
 
+  // Fallback rounded-rect
+  function rr(ctx:CanvasRenderingContext2D, x:number, y:number, w:number, h:number, rad:number){
+    const r = Math.max(0, Math.min(rad, Math.min(w,h)/2))
+    ctx.beginPath()
+    ctx.moveTo(x+r, y)
+    ctx.lineTo(x+w-r, y)
+    ctx.quadraticCurveTo(x+w, y, x+w, y+r)
+    ctx.lineTo(x+w, y+h-r)
+    ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h)
+    ctx.lineTo(x+r, y+h)
+    ctx.quadraticCurveTo(x, y+h, x, y+h-r)
+    ctx.lineTo(x, y+r)
+    ctx.quadraticCurveTo(x, y, x+r, y)
+    ctx.closePath()
+  }
+
   function drawKnife(ctx:CanvasRenderingContext2D, r:number){
     // blade
-    ctx.fillStyle=themeRef.current.blade
-    ctx.beginPath(); (ctx as any).roundRect?.(-4, -r-54, 8, 54, 4); ctx.fill()
+    ctx.fillStyle = themeRef.current.blade
+    ctx.beginPath()
+    if((ctx as any).roundRect){ (ctx as any).roundRect(-4, -r-54, 8, 54, 4) } else { rr(ctx, -4, -r-54, 8, 54, 4) }
+    ctx.fill()
     // spine line
     ctx.strokeStyle='rgba(148,163,184,.8)'; ctx.lineWidth=1
     ctx.beginPath(); ctx.moveTo(0, -r-54); ctx.lineTo(0, -r-8); ctx.stroke()
     // handle
-    ctx.fillStyle=themeRef.current.handle; ctx.beginPath(); (ctx as any).roundRect?.(-5, -r-74, 10, 20, 4); ctx.fill()
+    ctx.fillStyle = themeRef.current.handle
+    ctx.beginPath()
+    if((ctx as any).roundRect){ (ctx as any).roundRect(-5, -r-74, 10, 20, 4) } else { rr(ctx, -5, -r-74, 10, 20, 4) }
+    ctx.fill()
     ctx.fillStyle='#e5e7eb'; ctx.beginPath(); ctx.arc(0,-r-63,1.6,0,Math.PI*2); ctx.fill()
   }
 
@@ -295,24 +316,27 @@ function woodTexture(ctx:CanvasRenderingContext2D, x:number,y:number,r:number){
     ctx.beginPath(); ctx.moveTo(0, -(r+12)); ctx.lineTo(0, -(r+26)); ctx.stroke()
     // small ghost knife above
     ctx.fillStyle = 'rgba(255,255,255,.45)'
-    ;(ctx as any).roundRect?.(-3, -(r+56), 6, 50, 3)
+    ctx.beginPath()
+    if((ctx as any).roundRect){ (ctx as any).roundRect(-3, -(r+56), 6, 50, 3) } else { rr(ctx, -3, -(r+56), 6, 50, 3) }
     ctx.fill()
     ctx.globalAlpha = 1
     ctx.restore()
   }
 
-  // 绘制飞行中的刀（刀尖在(0,0)，竖直朝下）
+  // 绘制飞行中的刀（刀尖在(0,0)，竖直朝上，blade 向上延伸）
   function drawKnifeFlight(ctx:CanvasRenderingContext2D){
-    // TIP at (0,0), pointing downward
+    // TIP at (0,0), blade extends UP to avoid penetrating the ring
     ctx.fillStyle = themeRef.current.blade
-    ;(ctx as any).roundRect?.(-4, 0, 8, 54, 4)
+    ctx.beginPath()
+    if((ctx as any).roundRect){ (ctx as any).roundRect(-4, -54, 8, 54, 4) } else { rr(ctx, -4, -54, 8, 54, 4) }
     ctx.fill()
-    // spine
+    // spine (upwards)
     ctx.strokeStyle='rgba(148,163,184,.8)'; ctx.lineWidth=1
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 46); ctx.stroke()
-    // handle
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -46); ctx.stroke()
+    // handle (still above tip at y∈[-18,0])
     ctx.fillStyle = themeRef.current.handle
-    ;(ctx as any).roundRect?.(-5, -18, 10, 18, 4)
+    ctx.beginPath()
+    if((ctx as any).roundRect){ (ctx as any).roundRect(-5, -18, 10, 18, 4) } else { rr(ctx, -5, -18, 10, 18, 4) }
     ctx.fill()
     ctx.fillStyle='#e5e7eb'; ctx.beginPath(); ctx.arc(0,-6,1.6,0,Math.PI*2); ctx.fill()
   }
@@ -383,17 +407,17 @@ function woodTexture(ctx:CanvasRenderingContext2D, x:number,y:number,r:number){
         previewSuppressRef.current = performance.now() + 220
         // 到达：判定是否撞刀
         const aHit = - (angle.current % (Math.PI*2))
-        for(const k of knives.current){
-          const diff = Math.abs(((k.angle - aHit + Math.PI) % (Math.PI*2)) - Math.PI)
-          if(diff < (12*Math.PI/180)){
-            sfxClang()
-            setFailReason('飞刀相撞')
-            setOver(true)
-            flying.current = null
-            setBest(b=>Math.max(b, score))
-            return
-          }
-        }
+    for(const k of knives.current){
+      const diff = Math.abs(((k.angle - aHit + Math.PI) % (Math.PI*2)) - Math.PI)
+      if(diff < (10*Math.PI/180)){
+        sfxClang()
+        setFailReason('飞刀相撞')
+        setOver(true)
+        flying.current = null
+        setBest(b=>Math.max(b, score))
+        return
+      }
+    }
         // 命中苹果？
         let ate = false
         for(let i=apples.current.length-1;i>=0;i--){
@@ -406,6 +430,8 @@ function woodTexture(ctx:CanvasRenderingContext2D, x:number,y:number,r:number){
         }
         knives.current.push({angle:aHit})
         flying.current = null
+        // force immediate next frame scheduling (avoids 1-frame blank on some devices)
+        // requestAnimationFrame will fire soon anyway, but this hints the loop
         if(ate){
           setApplesGot(g=>g+1)
           setScore(s=>s+3)
@@ -436,7 +462,7 @@ function woodTexture(ctx:CanvasRenderingContext2D, x:number,y:number,r:number){
 
   function drawHUD(ctx:CanvasRenderingContext2D){
     ctx.fillStyle='rgba(255,255,255,.92)'
-    if((ctx as any).roundRect){ (ctx as any).roundRect(10,10,340,72,14); ctx.fill() } else { ctx.fillRect(10,10,340,72) }
+    if((ctx as any).roundRect){ ctx.beginPath(); (ctx as any).roundRect(10,10,340,72,14); ctx.fill() } else { ctx.fillRect(10,10,340,72) }
     ctx.fillStyle='#111'; ctx.font='600 14px system-ui, -apple-system, Segoe UI'
     ctx.fillText(`得分：${score}`, 20, 30)
     ctx.fillText(`最佳：${best}`, 120, 30)
@@ -523,12 +549,26 @@ function woodTexture(ctx:CanvasRenderingContext2D, x:number,y:number,r:number){
     setThemeIdx(i => (i + 1) % THEMES.length)
   }
 
+  // Keyboard support for better feel — guard when over/cleared to prevent negative knives
+  useEffect(()=>{
+    const onKey=(e:KeyboardEvent)=>{
+      if(e.code==='Space'){
+        e.preventDefault()
+        if(!over && !levelCleared && knivesLeft>0 && !flying.current){
+          throwKnife()
+        }
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return ()=> window.removeEventListener('keydown', onKey)
+  }, [over, levelCleared, knivesLeft])
+
   return (
-      <div className="container" style={{position:'relative'}}>
+      <div className="container" style={{position:'relative', userSelect:'none'}}>
         <h1>🎯 飞刀靶 - 关卡挑战 & 主题皮肤</h1>
         <p className="desc">更大舞台 · 自上而下投掷 · 预落点提示 · 关卡目标 + 失败弹窗</p>
 
-        <div className="stage" style={{height:480, display:'grid', placeItems:'center', background: theme.bg[0]}} onClick={throwKnife}>
+        <div className="stage" style={{height:480, display:'grid', placeItems:'center', background: theme.bg[0], boxShadow:'0 8px 24px rgba(2,6,23,.25)', borderRadius:12, overflow:'hidden'}} onClick={()=>{ if(!over && !levelCleared && knivesLeft>0 && !flying.current) throwKnife() }}>
           <canvas id="knv" style={{width:'100%', height:'100%'}}/>
         </div>
 

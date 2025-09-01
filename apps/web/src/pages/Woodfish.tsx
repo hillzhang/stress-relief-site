@@ -71,7 +71,7 @@ function useSfx(muted:boolean){
 
 // ripple particle
 type Ripple = { id:number, x:number, y:number, r:number, life:number }
-
+type Confetti = { id:number, x:number, y:number, vx:number, vy:number, life:number, rot:number, color:string, r?: number }
 type Mode = 'zen'|'classic'|'timed'
 
 const WILLOW_CSS = `
@@ -149,6 +149,16 @@ export default function Woodfish(){
   const [muted, setMuted] = useState(false)
   const sfx = useSfx(muted)
 
+  // 愿望系统
+  const [wish, setWish] = useState<string>(() => localStorage.getItem('woodfish:wish') || '')
+  const [wishTarget, setWishTarget] = useState<number>(() => Number(localStorage.getItem('woodfish:wishTarget')) || 108)
+  const [wishActive, setWishActive] = useState(false)
+  const [wishCount, setWishCount] = useState(0)
+  const [wishBanner, setWishBanner] = useState<string|null>(null)
+  const wishBannerUntil = useRef(0)
+  useEffect(()=>{ localStorage.setItem('woodfish:wish', wish) }, [wish])
+  useEffect(()=>{ localStorage.setItem('woodfish:wishTarget', String(wishTarget)) }, [wishTarget])
+
   const [bgId, setBgId] = useState<string>(() => localStorage.getItem('woodfish:bg') || BG_PRESETS[0].id)
   const stageBg = useMemo(() => BG_PRESETS.find(b=>b.id===bgId)?.css || BG_PRESETS[0].css, [bgId])
   useEffect(()=>{ localStorage.setItem('woodfish:bg', bgId) }, [bgId])
@@ -176,11 +186,15 @@ export default function Woodfish(){
   const CANVAS_H = 480
   const centerX = CANVAS_W/2
   const centerY = CANVAS_H/2
+  // Forehead position (for confetti burst)
+  const foreheadX = centerX
+  const foreheadY = centerY - 78
 
   const [ripples, setRipples] = useState<Ripple[]>([])
   const ridRef = useRef(1)
   const pulseRef = useRef(0) // fish squish animation progress [0..1]
-
+  const [confetti, setConfetti] = useState<Confetti[]>([])
+  const cidRef = useRef(1)
   // timer for timed mode
   useEffect(()=>{
     if(mode!=='timed') return
@@ -202,6 +216,17 @@ export default function Woodfish(){
     const loop = ()=>{
       pulseRef.current = Math.max(0, pulseRef.current - 0.06)
       setRipples(rs => rs.filter(r=> r.life>0).map(r=> ({...r, r:r.r+2, life:r.life-0.06})))
+      setConfetti(cs => cs
+        .filter(c => c.life > 0)
+        .map(c => ({
+          ...c,
+          x: c.x + c.vx,
+          y: c.y + c.vy,
+          vy: c.vy + 0.38, // lighter gravity to float longer
+          rot: c.rot + 18,  // faster spin
+          life: c.life - 0.03 // slower fade
+        }))
+      )
       af=requestAnimationFrame(loop)
     }
     af=requestAnimationFrame(loop)
@@ -212,6 +237,8 @@ export default function Woodfish(){
     setCount(0); setLast(null); setBpm(0); setSmoothBpm(0); setCombo(0); setMaxCombo(0)
     if(mode==='timed'){ setTimeLeft(60) }
     setRipples([]); pulseRef.current = 0
+    setConfetti([])
+    setWishBanner(null); wishBannerUntil.current = 0
   }
 
   function hit(e?: React.MouseEvent<HTMLButtonElement>){
@@ -235,6 +262,42 @@ export default function Woodfish(){
     pulseRef.current = 1
     // add a ripple at center (SVG logical center)
     setRipples(rs=>[...rs, { id:ridRef.current++, x:centerX, y:centerY-30, r:14, life:1 }])
+    // 愿望计数与达成
+    if(wishActive){
+      setWishCount(n=>{
+        const m = n + 1
+        if(m >= wishTarget){
+          setWishActive(false)
+          setWishBanner('🎉 愿望达成')
+          wishBannerUntil.current = performance.now() + 1400
+          // 庆祝涟漪
+          setRipples(rs=>[...rs, { id:ridRef.current++, x:centerX, y:centerY-30, r:22, life:1 }])
+          setRipples(rs=>[...rs, { id:ridRef.current++, x:centerX, y:centerY-30, r:34, life:1 }])
+          // 礼花彩纸
+          const palette = ['#f97316','#f43f5e','#a78bfa','#22d3ee','#34d399','#fde047']
+          setConfetti(cs => ([
+            ...cs,
+            ...Array.from({length:140}).map((_,i)=>{
+              const a = Math.random()*Math.PI*2
+              const sp = 100 + Math.random()*120 // faster burst
+              const size = 3 + Math.random()*3   // 3~6 px
+              return {
+                id: cidRef.current++,
+                x: foreheadX,
+                y: foreheadY,
+                vx: Math.cos(a) * (sp/30),
+                vy: Math.sin(a) * (sp/30) - 2.2,
+                life: 1.3,
+                rot: Math.random()*360,
+                color: palette[i % palette.length],
+                r: size
+              } as Confetti
+            })
+          ]))
+        }
+        return m
+      })
+    }
   }
 
   const pulse = pulseRef.current
@@ -286,6 +349,40 @@ export default function Woodfish(){
       <p className="desc" style={{fontSize: 14, opacity:.8, margin:'0 0 8px'}}>一敲一静心 · 经典 / 禅 / 60s 模式 · 细腻木质音效与涟漪动画</p>
 
       <div style={{display:'flex', flexDirection:'column', gap:10, marginBottom:8}}>
+      {/* 愿望系统 */}
+      <div style={{display:'flex', gap:10, flexWrap:'wrap', alignItems:'center', marginBottom:8}}>
+        <span style={{opacity:.75}}>愿望：</span>
+        <input
+          value={wish}
+          onChange={e=> setWish(e.target.value)}
+          placeholder="输入你的愿望..."
+          style={{ padding:'6px 10px', borderRadius:8, border:'1px solid rgba(0,0,0,.12)', minWidth: 200 }}
+        />
+        <span style={{opacity:.75}}>目标次数(越多越虔诚)：</span>
+        <input
+          type="number"
+          min={18}
+          max={1080}
+          value={wishTarget}
+          onChange={e=> setWishTarget(Math.max(18, Math.min(1080, Number(e.target.value)||108)))}
+          style={{ width:90, padding:'6px 8px', borderRadius:8, border:'1px solid rgba(0,0,0,.12)' }}
+        />
+        {!wishActive ? (
+          <button className="btn primary" onClick={()=>{ setWishCount(0); setWishActive(true); setWishBanner(null); }}>开始许愿</button>
+        ) : (
+          <button className="btn secondary" onClick={()=> setWishActive(false)}>暂停</button>
+        )}
+        <button className="btn ghost" onClick={()=>{ setWish(''); setWishCount(0); setWishActive(false) }}>清空</button>
+        {wish && <div className="badge">{wishActive? '进行中' : '未开始'} · {wishCount}/{wishTarget}</div>}
+      </div>
+      {wish && (
+        <div style={{marginTop:6, marginBottom:8}}>
+          <div style={{height:8, borderRadius:999, background:'rgba(0,0,0,.08)', overflow:'hidden'}}>
+            <div style={{height:'100%', width:`${Math.min(100, Math.round(wishCount*100/Math.max(1,wishTarget)))}%`, background:'#60a5fa', borderRadius:999, transition:'width 200ms ease'}} />
+          </div>
+          <div style={{fontSize:12, opacity:.7, marginTop:4}}>{wish || '未填写愿望'}</div>
+        </div>
+      )}
         <div style={{display:'flex', gap:8, flexWrap:'wrap', alignItems:'center'}}>
           <button className={`btn ${mode==='zen'?'primary':'secondary'}`} onClick={()=>{ setMode('zen'); resetAll() }}>禅模式</button>
           <button className={`btn ${mode==='classic'?'primary':'secondary'}`} onClick={()=>{ setMode('classic'); resetAll() }}>经典</button>
@@ -294,7 +391,7 @@ export default function Woodfish(){
           {mode==='timed' && badge(`倒计时 ${timeLeft}s`)}
           {mode!=='zen' && badge(`次数 ${count}`)}
           {mode!=='zen' && badge(`BPM ${smoothBpm||bpm}`)}
-          {mode!=='zen' && badge(`连击 ${combo}（最高 {${maxCombo}}）`)}
+          {mode!=='zen' && badge(`连击 ${combo}（最高 ${maxCombo}）`)}
         </div>
         <div style={{display:'flex', gap:16, flexWrap:'wrap', alignItems:'center'}}>
           <div style={{display:'inline-flex', alignItems:'center', gap:8, flexWrap:'wrap'}}>
@@ -342,6 +439,13 @@ export default function Woodfish(){
         </div>
       </div>
 
+      {(wishBanner && performance.now() < wishBannerUntil.current) && (
+        <div style={{position:'absolute', left:0, right:0, top:0, display:'flex', justifyContent:'center', zIndex:2, paddingTop:8, pointerEvents:'none'}}>
+          <div style={{ background:'rgba(15,23,42,.78)', color:'#fff', padding:'4px 10px', borderRadius:12, fontWeight:700 }}>
+            {wishBanner} {wish ? `· ${wish}` : ''}
+          </div>
+        </div>
+      )}
       <div
         className="stage"
         style={{
@@ -379,6 +483,13 @@ export default function Woodfish(){
               <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
             </radialGradient>
             <filter id="blur"><feGaussianBlur in="SourceGraphic" stdDeviation="2"/></filter>
+            <filter id="confettiGlow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="0.8" result="b" />
+              <feMerge>
+                <feMergeNode in="b" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
             <radialGradient id="haloGrad" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor="rgba(255,208,120,.55)" />
               <stop offset="60%" stopColor="rgba(255,208,120,.15)" />
@@ -420,6 +531,23 @@ export default function Woodfish(){
             {/* vector outline on top for definition */}
             {/* <path d="M-96,0 Q-62,-56 0,-66 Q62,-56 96,0 Q62,56 0,66 Q-62,56 -96,0 Z" fill="none" stroke="#8b5e34" strokeWidth="3"/> */}
           </g>
+          {/* confetti (above fish) */}
+          {confetti.map(c => (
+            <g key={`c_${c.id}`} transform={`translate(${c.x} ${c.y}) rotate(${c.rot})`} opacity={Math.max(0, Math.min(1, c.life))}>
+              <rect
+                x={-(c.r||4)/2}
+                y={-(c.r||4)/2}
+                width={c.r||4}
+                height={c.r||4}
+                rx={(c.r||4)*0.25}
+                fill={c.color}
+                stroke="rgba(255,255,255,.6)"
+                strokeWidth={0.6}
+                filter="url(#confettiGlow)"
+                style={{mixBlendMode:'screen'}}
+              />
+            </g>
+          ))}
 
         </svg>
         {cursorVisible && (
@@ -442,6 +570,7 @@ export default function Woodfish(){
       </div>
 
       <div style={{display:'flex', gap:12, marginTop:12, flexWrap:'wrap'}}>
+        {wish && <div className="badge">愿望进度 {wishCount}/{wishTarget}</div>}
         {mode!=='zen' && <div className="badge">次数 {count}</div>}
         {mode!=='zen' && <div className="badge">BPM {smoothBpm||bpm}</div>}
         {mode!=='zen' && <div className="badge">连击 {combo} / 最高 {maxCombo}</div>}

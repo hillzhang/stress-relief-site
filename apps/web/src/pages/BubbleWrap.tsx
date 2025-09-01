@@ -148,6 +148,11 @@ export default function BubbleWrap() {
         return ()=> clearTimeout(t)
     }, [mode, timeLeft])
 
+    // 当行/列变化时自动重建网格
+    useEffect(() => {
+        buildGrid(rows, cols)
+    }, [rows, cols])
+
     // challenge：随机生成一个“目标图案”（例如一个心形/笑脸的少量点位）
     function regenChallenge() {
         const s = new Set<number>()
@@ -298,8 +303,8 @@ export default function BubbleWrap() {
                   className={`btn ${mode==='challenge' ? 'primary' : 'secondary'}`}
                   onClick={()=>{ setMode('challenge'); resetAll(); regenChallenge(); }}
                 >挑战图案</button>
-                <button className="btn ghost" onClick={()=>{ setRows(r=>Math.min(18,r+1)); buildGrid(rows+1, cols) }}>增加行</button>
-                <button className="btn ghost" onClick={()=>{ setCols(c=>Math.min(14,c+1)); buildGrid(rows, cols+1) }}>增加列</button>
+                <button className="btn ghost" onClick={()=>{ setRows(r=>Math.min(18,r+1)) }}>增加行</button>
+                <button className="btn ghost" onClick={()=>{ setCols(c=>Math.min(24,c+1)) }}>增加列</button>
                 <a className="btn ghost" href="/">返回首页</a>
             </div>
 
