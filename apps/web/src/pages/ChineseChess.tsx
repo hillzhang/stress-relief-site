@@ -594,8 +594,8 @@ function search(b:Board, depth:number, alpha:number, beta:number, side:Color, no
     let inCheck=false;
     for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
       const q=b[r][c];
-      if(q && q.c!==' ' && q.c!==side){
-        if(attacks(b,r,c,kr,kc)) inCheck=true;
+      if (q && q.c !== side) {
+        if (attacks(b, r, c, kr, kc)) inCheck = true;
       }
     }
     const score = inCheck ? -MATE + nodes.n : 0;

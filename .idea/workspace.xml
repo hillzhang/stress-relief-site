@@ -422,13 +422,6 @@
       <change afterPath="$PROJECT_DIR$/../spider/examples/people/people.html" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../spider/main.go" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../sqlite/main.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/web/src/pages/Blackjack.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/web/src/pages/Checkers.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/web/src/pages/ChineseChess.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/web/src/pages/Gomoku.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/web/src/pages/PokerArrange.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/web/src/pages/Reversi.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/web/src/pages/TicTacToe.tsx" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../weaviate/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../cache/cache.go" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../../cdnt.log" beforeDir="false" />
@@ -529,8 +522,7 @@
       <change beforePath="$PROJECT_DIR$/../monitor.k8s.shouming/falcon-plus/modules/graph/version.go" beforeDir="false" afterPath="$PROJECT_DIR$/../monitor.k8s.shouming/falcon-plus/modules/graph/version.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../monitor.k8s.shouming/webserver/webserver/web_monitor.py" beforeDir="false" afterPath="$PROJECT_DIR$/../monitor.k8s.shouming/webserver/webserver/web_monitor.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/App.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/src/pages/Game2048.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/pages/Game2048.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/web/src/pages/ChineseChess.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/pages/ChineseChess.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../static/css/bootstrap.css.map" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../../static/css/bootstrap.min.css" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../../static/css/g.css" beforeDir="false" />
@@ -1287,23 +1279,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.go.formatter.settings.were.checked": "true",
-    "RunOnceActivity.go.migrated.go.modules.settings": "true",
-    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
-    "git-widget-placeholder": "#2 on codex/add-new-mini-games-support",
-    "go.import.settings.migrated": "true",
-    "go.sdk.automatically.set": "true",
-    "last_opened_file_path": "/Users/hillzhang/goworkspace/src/stress-relief-site/apps/web/src/pages",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.lookFeel",
-    "ts.external.directory.path": "/Users/hillzhang/goworkspace/src/stress-relief-site/apps/web/node_modules/typescript/lib"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;#2 on codex/add-new-mini-games-support&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/hillzhang/goworkspace/src/stress-relief-site/apps/web/src/pages&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Users/hillzhang/goworkspace/src/stress-relief-site/apps/web/node_modules/typescript/lib&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/apps/web/src/pages" />
