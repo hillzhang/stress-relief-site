@@ -31,6 +31,33 @@ import FlappyBird from './pages/FlappyBird'
 import Space from './pages/Space'
 import Incense from './pages/Incense'
 // import Tank90 from './pages/Tank90'
+import Gomoku from './pages/Gomoku'
+import TicTacToe from './pages/TicTacToe'
+import Blackjack from './pages/Blackjack'
+import Reversi from './pages/Reversi'
+import PokerArrange from './pages/PokerArrange'
+
+// --- Board/Card games (placeholders) ---
+function ComingSoon({ title }: { title: string }){
+  return (
+    <div className="page-wrap">
+      <div className="shell">
+        <header className="page-header compact">
+          <h1 className="title">{title}</h1>
+          <p className="subtitle">玩法正在开发中，欢迎先体验其它棋牌游戏～</p>
+        </header>
+        <div className="bottom-bar">
+          <div className="actions">
+            <a className="btn secondary" href="/">返回首页</a>
+          </div>
+          <p className="help">提示：你也可以在 GitHub Issue 提需求，我们会优先支持热门玩法。</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+import ChineseChess from './pages/ChineseChess'
+const Checkers = () => <ComingSoon title="⛀ 国际跳棋 · Checkers"/>;
 
 import './styles.css'
 
@@ -52,6 +79,7 @@ function Home() {
           </div>
           <nav className="nav">
             <a href="#games">小游戏</a>
+            <a href="#board">棋牌</a>
             <a href="#tools">工具</a>
             <Link to="/noise">白噪音</Link>
             <a href="#fun">互动</a>
@@ -72,7 +100,7 @@ function Home() {
       </section>
 
       <main className="container">
-        <div className="ad"><strong>广告位</strong>（示意）横幅不打扰体验</div>
+        {/*<div className="ad"><strong>广告位</strong>（示意）横幅不打扰体验</div>*/}
 
         <section className="section" id="games">
           <h2>🎮 小游戏</h2>
@@ -92,6 +120,7 @@ function Home() {
             <Link className="card pop" to="/breakout"><div className="title">🧱 打砖块</div><div className="desc">经典复刻</div></Link>
             <Link className="card pop" to="/mole"><div className="title">🐹 打地鼠</div><div className="desc">限时反应</div></Link>
             <Link className="card pop" to="/memory"><div className="title">🃏 记忆翻牌</div><div className="desc">配对放松</div></Link>
+            <Link className="card pop" to="/poker-arrange"><div className="title">🃏 摆扑克</div><div className="desc">按花色点数摆齐</div></Link>
             <Link className="card pop" to="/2048"><div className="title">🔢 2048</div><div className="desc">合成数字</div></Link>
             <Link className="card pop" to="/snake"><div className="title">🐍 贪吃蛇</div><div className="desc">经典玩法</div></Link>
             <Link className="card pop" to="/tetris"><div className="title">🧊 俄罗斯方块</div><div className="desc">方块消除</div></Link>
@@ -101,6 +130,19 @@ function Home() {
             <Link className="card pop" to="/flappy"><div className="title">🐤 跳跃鸟</div><div className="desc">穿越水管</div></Link>
             <Link className="card pop" to="/space"><div className="title">🚀 太空射击</div><div className="desc">击退入侵</div></Link>
             {/*<Link className="card pop" to="/tank90"><div className="title">🛡️ 坦克大战</div><div className="desc">经典坦90</div></Link>*/}
+          </div>
+        </section>
+
+        <section className="section" id="board">
+          <h2>🀄 棋牌类</h2>
+          <div className="grid">
+            <Link className="card pop" to="/gomoku"><div className="title">⚫ 五子棋</div><div className="desc">五连珠胜负</div></Link>
+            <Link className="card pop" to="/tictactoe"><div className="title">❌ 井字棋</div><div className="desc">三子连线</div></Link>
+            <Link className="card pop" to="/blackjack"><div className="title">🃏 21点</div><div className="desc">比大小</div></Link>
+            <Link className="card pop" to="/poker-arrange"><div className="title">🃏 摆扑克</div><div className="desc">按花色点数摆齐</div></Link>
+            <Link className="card pop" to="/reversi"><div className="title">⚪⚫ 黑白棋</div><div className="desc">翻转占领</div></Link>
+            {/*<Link className="card pop" to="/chesscn"><div className="title">♟️ 中国象棋</div><div className="desc">楚河汉界</div></Link>*/}
+            {/*<Link className="card pop" to="/checkers"><div className="title">⛀ 国际跳棋</div><div className="desc">吃子过河</div></Link>*/}
           </div>
         </section>
 
@@ -153,6 +195,7 @@ export default function App(){
         <Route path="/breakout" element={<Breakout/>} />
         <Route path="/mole" element={<Mole/>} />
         <Route path="/memory" element={<Memory/>} />
+        <Route path="/poker-arrange" element={<PokerArrange/>} />
         <Route path="/2048" element={<Game2048/>} />
         <Route path="/snake" element={<Snake/>} />
         <Route path="/tetris" element={<Tetris/>} />
@@ -162,6 +205,12 @@ export default function App(){
         <Route path="/flappy" element={<FlappyBird/>} />
         <Route path="/space" element={<Space/>} />
         <Route path="/incense" element={<Incense/>} />
+        <Route path="/gomoku" element={<Gomoku/>} />
+        <Route path="/tictactoe" element={<TicTacToe/>} />
+        <Route path="/blackjack" element={<Blackjack/>} />
+        <Route path="/reversi" element={<Reversi/>} />
+        <Route path="/chesscn" element={<ChineseChess/>} />
+        <Route path="/checkers" element={<Checkers/>} />
         {/*<Route path="/tank90" element={<Tank90/>} />*/}
         {/*<Route path="/slime" element={<Slime/>} />*/}
         {/*<Route path="/screw" element={<Screw/>} />*/}

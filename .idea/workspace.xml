@@ -422,8 +422,13 @@
       <change afterPath="$PROJECT_DIR$/../spider/examples/people/people.html" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../spider/main.go" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../sqlite/main.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/web/src/pages/Incense.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/web/src/pages/Tank90.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/web/src/pages/Blackjack.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/web/src/pages/Checkers.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/web/src/pages/ChineseChess.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/web/src/pages/Gomoku.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/web/src/pages/PokerArrange.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/web/src/pages/Reversi.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/web/src/pages/TicTacToe.tsx" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../weaviate/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../cache/cache.go" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../../cdnt.log" beforeDir="false" />
@@ -525,23 +530,7 @@
       <change beforePath="$PROJECT_DIR$/../monitor.k8s.shouming/webserver/webserver/web_monitor.py" beforeDir="false" afterPath="$PROJECT_DIR$/../monitor.k8s.shouming/webserver/webserver/web_monitor.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/web/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/App.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/src/pages/BlindBox.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/pages/BlindBox.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/src/pages/Bottle.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/pages/Bottle.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/src/pages/Breakout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/pages/Breakout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/src/pages/BubbleWrap.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/pages/BubbleWrap.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/src/pages/DoodleBoard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/pages/DoodleBoard.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/src/pages/FlappyBird.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/pages/FlappyBird.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/apps/web/src/pages/Game2048.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/pages/Game2048.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/src/pages/Knives.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/pages/Knives.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/src/pages/Minesweeper.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/pages/Minesweeper.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/src/pages/Pacman.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/pages/Pacman.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/src/pages/Snake.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/pages/Snake.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/src/pages/Space.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/pages/Space.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/src/pages/Spinner.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/pages/Spinner.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/src/pages/Stars.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/pages/Stars.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/src/pages/Tetris.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/pages/Tetris.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/src/pages/WhiteNoise.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/pages/WhiteNoise.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/web/src/pages/Woodfish.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/web/src/pages/Woodfish.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../static/css/bootstrap.css.map" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../../static/css/bootstrap.min.css" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../../static/css/g.css" beforeDir="false" />
@@ -1307,7 +1296,7 @@
     "git-widget-placeholder": "#2 on codex/add-new-mini-games-support",
     "go.import.settings.migrated": "true",
     "go.sdk.automatically.set": "true",
-    "last_opened_file_path": "/Users/hillzhang/goworkspace/src/stress-relief-site/apps/web/public/images/skins/forest",
+    "last_opened_file_path": "/Users/hillzhang/goworkspace/src/stress-relief-site/apps/web/src/pages",
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
@@ -1317,6 +1306,7 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/apps/web/src/pages" />
       <recent name="$PROJECT_DIR$/apps/web/public/images/skins/forest" />
     </key>
   </component>
