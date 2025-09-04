@@ -120,7 +120,6 @@ function Home() {
             <Link className="card pop" to="/breakout"><div className="title">🧱 打砖块</div><div className="desc">经典复刻</div></Link>
             <Link className="card pop" to="/mole"><div className="title">🐹 打地鼠</div><div className="desc">限时反应</div></Link>
             <Link className="card pop" to="/memory"><div className="title">🃏 记忆翻牌</div><div className="desc">配对放松</div></Link>
-            <Link className="card pop" to="/poker-arrange"><div className="title">🃏 摆扑克</div><div className="desc">按花色点数摆齐</div></Link>
             <Link className="card pop" to="/2048"><div className="title">🔢 2048</div><div className="desc">合成数字</div></Link>
             <Link className="card pop" to="/snake"><div className="title">🐍 贪吃蛇</div><div className="desc">经典玩法</div></Link>
             <Link className="card pop" to="/tetris"><div className="title">🧊 俄罗斯方块</div><div className="desc">方块消除</div></Link>
