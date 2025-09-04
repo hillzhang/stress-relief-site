@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react'
 import '../styles.css'
 
@@ -17,6 +16,22 @@ export default function DoodleBoard(){
   const [redoStack, setRedo] = useState<Stroke[]>([])
   const [hue, setHue] = useState(0)
   const drawing = useRef(false)
+
+  // 恢复上次绘制
+  useEffect(() => {
+    const raw = localStorage.getItem('doodle_v1');
+    if (!raw) return;
+    try {
+      const data = JSON.parse(raw);
+      if (Array.isArray(data.strokes)) setStrokes(data.strokes);
+      if (data.opts) {
+        if (data.opts.mode) setMode(data.opts.mode);
+        if (typeof data.opts.width === 'number') setWidth(data.opts.width);
+        if (typeof data.opts.color === 'string') setColor(data.opts.color);
+        if (typeof data.opts.bgGrid === 'boolean') setBgGrid(data.opts.bgGrid);
+      }
+    } catch {}
+  }, []);
 
   useEffect(()=>{
     const cvs = canvasRef.current!
@@ -96,6 +111,43 @@ export default function DoodleBoard(){
   const redo = ()=> setRedo(prev => { if(!prev.length) return prev; const last = prev[prev.length-1]; setStrokes(s=>[...s, last]); return prev.slice(0,-1) })
   const clear = ()=> { if(confirm('清空画布？')) { setStrokes([]); setRedo([]) } }
   const save = ()=>{ const url = (canvasRef.current as HTMLCanvasElement).toDataURL('image/png'); const a = document.createElement('a'); a.href=url; a.download='doodle.png'; a.click() }
+
+  // 自动保存当前画布与设置
+  useEffect(() => {
+    const payload = JSON.stringify({
+      strokes,
+      opts: { mode, width, color, bgGrid }
+    });
+    try { localStorage.setItem('doodle_v1', payload); } catch {}
+  }, [strokes, mode, width, color, bgGrid]);
+
+  // 键盘快捷键：Ctrl/Cmd+Z 撤销、Ctrl/Cmd+Shift+Z / Ctrl+Y 重做、Ctrl/Cmd+S 导出、G 网格、[ ] 线宽、N/E/R/L/M/O/S 切换工具
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const ctrl = e.ctrlKey || e.metaKey;
+      const k = e.key;
+      if (ctrl && (k === 'z' || k === 'Z')) { e.preventDefault(); (e.shiftKey ? redo : undo)(); return; }
+      if (ctrl && (k === 'y' || k === 'Y')) { e.preventDefault(); redo(); return; }
+      if (ctrl && (k === 's' || k === 'S')) { e.preventDefault(); save(); return; }
+      if (k === 'g' || k === 'G') { setBgGrid(v => !v); return; }
+      if (k === '[') { setWidth(w => Math.max(1, w - 1)); return; }
+      if (k === ']') { setWidth(w => Math.min(28, w + 1)); return; }
+      if (ctrl && (k === 'c' || k === 'C')) { clear(); return; }
+      // 工具切换（非样式改动，仅交互增强）
+      switch (k) {
+        case 'n': case 'N': setMode('normal'); break;
+        case 'e': case 'E': setMode('erase'); break;
+        case 'r': case 'R': setMode('rainbow'); break;
+        case 'l': case 'L': setMode('line'); break;
+        case 'm': case 'M': setMode('rect'); break;
+        case 'o': case 'O': setMode('circle'); break;
+        case 's': case 'S': if (!ctrl) setMode('sticker'); break;
+        default: break;
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [undo, redo, save, clear]);
 
   return (
     <div className="container">

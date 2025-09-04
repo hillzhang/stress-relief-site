@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import '../styles.css'
 
-type Particle = { x:number,y:number,vx:number,vy:number,life:number,age:number }
+type Particle = { x:number,y:number,vx:number,vy:number,life:number,age:number, color?: string, r?: number }
 
 export default function Spinner(){
   const ref = useRef<HTMLCanvasElement|null>(null)
@@ -19,12 +19,30 @@ export default function Spinner(){
   const [muted, setMuted] = useState(false)
   const particlesRef = useRef<Particle[]>([])
   const audioCtxRef = useRef<AudioContext|null>(null)
+  type Mode = 'timed' | 'endurance'
+  const [mode, setMode] = useState<Mode>('timed')
+  const bannerUntilRef = useRef(0)
+  const [bannerText, setBannerText] = useState<string|null>(null)
+  const achievedRef = useRef(0)
+  const [elapsed, setElapsed] = useState(0)
+  const lowRPMAccRef = useRef(0)
+  // hum audio
+  const humGainRef = useRef<GainNode|null>(null)
+  const humOscRef = useRef<OscillatorNode|null>(null)
 
   // audio
   function ensureCtx(){
     if(!audioCtxRef.current){
       const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext
       if(Ctx) audioCtxRef.current = new Ctx({latencyHint:'interactive'})
+      if(audioCtxRef.current && !humGainRef.current){
+        const g = audioCtxRef.current.createGain(); g.gain.value = 0
+        const o = audioCtxRef.current.createOscillator(); o.type = 'triangle'; o.frequency.value = 120
+        o.connect(g).connect(audioCtxRef.current.destination)
+        o.start()
+        humGainRef.current = g
+        humOscRef.current = o
+      }
     }
     return audioCtxRef.current
   }
@@ -77,22 +95,46 @@ export default function Spinner(){
       // score & ui timers
       const curRPM = Math.abs(velRef.current) * 60 / (2*Math.PI)
       setRPM(Math.round(curRPM))
+      // Achievements & banner
+      if(running){
+        const prev = achievedRef.current
+        let tier = 0
+        if(curRPM>=300) tier=300
+        else if(curRPM>=200) tier=200
+        else if(curRPM>=100) tier=100
+        if(tier>prev){
+          achievedRef.current = tier
+          setBannerText(`突破 ${tier} RPM!`)
+          bannerUntilRef.current = performance.now() + 1200
+          fireworks(rectRef.current.width/2, 220, tier, particlesRef.current)
+        }
+      }
       if(running){
         setScore(s => s + Math.floor(curRPM*dt))
         tickAcc += dt
         if(tickAcc>0.2 && curRPM>60){ tickAcc=0; tickSound(curRPM) }
       }
+      const actx = ensureCtx()
+      if(actx && humGainRef.current && humOscRef.current){
+        const targetGain = muted ? 0 : Math.min(0.18, (curRPM/400)*0.18)
+        humGainRef.current.gain.setTargetAtTime(targetGain, actx.currentTime, 0.05)
+        const f = 80 + curRPM*5
+        humOscRef.current.frequency.setTargetAtTime(f, actx.currentTime, 0.05)
+      }
 
-      // time
+      // time / modes
       if(running){
-        setTimeLeft(t=>{
-          const n = Math.max(0, t - dt)
-          if(t>0 && n===0){
-            setRunning(false)
-            setBest(b=>Math.max(b, score))
-          }
-          return n
-        })
+        if(mode==='timed'){
+          setTimeLeft(t=>{
+            const n = Math.max(0, t - dt)
+            if(t>0 && n===0){ setRunning(false); setBest(b=>Math.max(b, score)) }
+            return n
+          })
+        } else { // endurance
+          setElapsed(e=> e + dt)
+          if(curRPM < 40) lowRPMAccRef.current += dt; else lowRPMAccRef.current = 0
+          if(lowRPMAccRef.current > 1.2){ setRunning(false); setBest(b=>Math.max(b, score)) }
+        }
       }
 
       // clear
@@ -107,7 +149,7 @@ export default function Spinner(){
       updateParticles(ctx, particlesRef.current, dt)
 
       // HUD
-      drawHUD(ctx, curRPM, score, best, timeLeft, running, muted)
+      drawHUD(ctx, curRPM, score, best, timeLeft, running, muted, mode, elapsed)
 
       raf.current = requestAnimationFrame(draw)
     }
@@ -157,12 +199,15 @@ export default function Spinner(){
       window.removeEventListener('pointerup', up as any)
       window.removeEventListener('pointercancel', up as any)
     }
-  }, [running, score, muted])
+  }, [running, score, muted, mode, elapsed])
 
   function restart(){
-    setScore(0); setTimeLeft(30); setRunning(true); setRPM(0)
+    setScore(0); setTimeLeft(30); setRunning(true); setRPM(0); setElapsed(0)
     angleRef.current = 0; velRef.current = 0
     particlesRef.current = []
+    lowRPMAccRef.current = 0
+    achievedRef.current = 0
+    setBannerText(null); bannerUntilRef.current = 0
   }
 
   return (
@@ -173,8 +218,20 @@ export default function Spinner(){
         <div style={{display:'flex',gap:8,justifyContent:'space-between',marginBottom:8}}>
           <div className="btn ghost" onClick={restart}>重新开始</div>
           <div className="btn ghost" onClick={()=>setMuted(v=>!v)}>{muted?'已静音':'有音效'}</div>
+          <div className="btn ghost" onClick={()=>{ setMode(m=> m==='timed'?'endurance':'timed'); restart() }}>
+            {mode==='timed' ? '切到耐力模式' : '切到限时模式'}
+          </div>
         </div>
-        <canvas ref={ref} />
+        <div style={{position:'relative'}}>
+          <canvas ref={ref} />
+          {(bannerText && performance.now() < bannerUntilRef.current) && (
+            <div style={{position:'absolute', left:0, right:0, top:0, display:'flex', justifyContent:'center', paddingTop:8, pointerEvents:'none'}}>
+              <div style={{ background:'rgba(15,23,42,.78)', color:'#fff', padding:'4px 10px', borderRadius:12, fontWeight:700 }}>
+                {bannerText}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       <div style={{opacity:.7,fontSize:12,marginTop:6,marginBottom:12}}>Tip：从圆心外沿着圆周方向快速划，瞬间提速更猛。</div>
       <div style={{marginTop:12}}>
@@ -251,8 +308,22 @@ function emitParticles(cx:number, cy:number, rpm:number, arr:Particle[]){
       y: cy + Math.sin(a)*90,
       vx: Math.cos(a)*40 + (Math.random()*40-20),
       vy: Math.sin(a)*40 + (Math.random()*40-20),
-      life: .6, age: 0
+      life: .6, age: 0,
+      color: 'rgba(148,163,184,.9)', r: 2.2
     })
+  }
+}
+
+function fireworks(cx:number, cy:number, tier:number, arr:Particle[]){
+  const colors = tier>=300 ? ['#f97316','#f43f5e','#a78bfa'] : tier>=200 ? ['#60a5fa','#f472b6','#34d399'] : ['#60a5fa','#94a3b8']
+  const count = tier>=300 ? 80 : tier>=200 ? 48 : 28
+  for(let i=0;i<count;i++){
+    const a = Math.random()*Math.PI*2
+    const sp = 80 + Math.random()*120
+    const vx = Math.cos(a)*sp
+    const vy = Math.sin(a)*sp
+    const c = colors[Math.floor(Math.random()*colors.length)]
+    arr.push({ x: cx, y: cy, vx, vy, life: 0.8, age: 0, color: c, r: 2.6 })
   }
 }
 
@@ -265,15 +336,16 @@ function updateParticles(ctx:CanvasRenderingContext2D, arr:Particle[], dt:number
     const a = 1 - p.age/p.life
     if(a<=0){ arr.splice(i,1); continue }
     ctx.globalAlpha = Math.max(0, Math.min(1, a))
-    ctx.fillStyle = 'rgba(148,163,184,.9)'
-    ctx.beginPath(); ctx.arc(p.x,p.y,2.2,0,Math.PI*2); ctx.fill()
+    ctx.fillStyle = p.color || 'rgba(148,163,184,.9)'
+    ctx.beginPath(); ctx.arc(p.x,p.y, p.r || 2.2, 0, Math.PI*2); ctx.fill()
     ctx.globalAlpha = 1
   }
 }
 
 function drawHUD(
   ctx:CanvasRenderingContext2D,
-  rpm:number, score:number, best:number, timeLeft:number, running:boolean, muted:boolean
+  rpm:number, score:number, best:number, timeLeft:number, running:boolean, muted:boolean,
+  mode: 'timed' | 'endurance', elapsed:number
 ){
   // panel
   ctx.fillStyle='rgba(255,255,255,.92)'
@@ -288,7 +360,11 @@ function drawHUD(
   ctx.roundRect ? (ctx as any).roundRect(10,68,120,28,12) : ctx.fillRect(10,68,120,28)
   ctx.fill()
   ctx.fillStyle='#fff'; ctx.font='700 14px system-ui'
-  ctx.fillText(`剩余：${Math.ceil(timeLeft)}s`, 20, 87)
+  if(mode==='timed'){
+    ctx.fillText(`剩余：${Math.ceil(timeLeft)}s`, 20, 87)
+  }else{
+    ctx.fillText(`耐力：${(elapsed).toFixed(1)}s`, 20, 87)
+  }
 
   // mute badge
   ctx.fillStyle='rgba(15,23,42,.08)'; ctx.beginPath()
